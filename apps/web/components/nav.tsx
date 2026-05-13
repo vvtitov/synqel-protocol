@@ -41,7 +41,7 @@ export function Nav() {
             Examples
           </Link>
           <a
-            href="https://github.com/synqel/synqel-protocol"
+            href="https://github.com/vvtitov/synqel-protocol"
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm font-medium transition-colors hover:opacity-80"

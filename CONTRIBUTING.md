@@ -48,7 +48,7 @@ Intent classes (`navigation`, `mutation`, `query`, `system`) are a core part of 
 ### Setup
 
 ```bash
-git clone https://github.com/synqel/synqel-protocol.git
+git clone https://github.com/vvtitov/synqel-protocol.git
 cd synqel-protocol
 bun install
 ```
@@ -145,4 +145,4 @@ Be respectful, constructive, and inclusive. We are building an open standard —
 
 ## Questions?
 
-Open a [Discussion](https://github.com/synqel/synqel-protocol/discussions) for questions about the protocol design or SDK usage.
+Open a [Discussion](https://github.com/vvtitov/synqel-protocol/discussions) for questions about the protocol design or SDK usage.
