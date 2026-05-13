@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Nav } from "@/components/nav";
@@ -21,6 +21,16 @@ export const metadata: Metadata = {
     "Synqel Protocol defines how any web app describes itself to an AI — entities, actions, workflows, and events as a semantic contract.",
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fafafa" },
+    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -28,7 +38,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${fontSans.variable} ${fontMono.variable}`}>
-      <body className="min-h-screen antialiased">
+      <body className="relative min-h-screen antialiased">
+        <a href="#main-content" className="skip-to-main">
+          Skip to content
+        </a>
         <Nav />
         {children}
       </body>
