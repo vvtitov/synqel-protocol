@@ -19,38 +19,110 @@
   --color-border-hover: #3f3f46;
   --color-accent: #a78bfa;
   --color-accent-dim: #7c3aed;
+  --color-accent-glow: color-mix(in srgb, var(--color-accent) 45%, transparent);
   --color-code-bg: #1a1a2e;
   --color-success: #4ade80;
   --color-warning: #fbbf24;
   --color-danger: #f87171;
+  --hero-grid: color-mix(in srgb, var(--color-text-primary) 6%, transparent);
+  --card-shine: color-mix(in srgb, var(--color-text-primary) 4%, transparent);
 }
 
 @media (prefers-color-scheme: light) {
   :root {
-    --color-bg: #ffffff;
-    --color-bg-secondary: #f4f4f5;
+    --color-bg: #fafafa;
+    --color-bg-secondary: #ffffff;
     --color-bg-tertiary: #e4e4e7;
     --color-text-primary: #09090b;
     --color-text-secondary: #52525b;
     --color-text-muted: #a1a1aa;
     --color-border: #e4e4e7;
     --color-border-hover: #d4d4d8;
-    --color-accent: #7c3aed;
-    --color-accent-dim: #a78bfa;
+    --color-accent: #6d28d9;
+    --color-accent-dim: #8b5cf6;
+    --color-accent-glow: color-mix(in srgb, var(--color-accent) 35%, transparent);
     --color-code-bg: #f4f4f5;
     --color-success: #16a34a;
     --color-warning: #d97706;
     --color-danger: #dc2626;
+    --hero-grid: color-mix(in srgb, var(--color-text-primary) 5%, transparent);
+    --card-shine: color-mix(in srgb, var(--color-text-primary) 6%, transparent);
   }
 }
 
 body {
   background-color: var(--color-bg);
   color: var(--color-text-primary);
-  font-family: var(--font-sans);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
 ::selection {
   background-color: var(--color-accent);
   color: var(--color-bg);
+}
+
+@keyframes hero-shift {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1) translate(0, 0);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.05) translate(2%, -1%);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-fade-up-delay-1 {
+  animation-delay: 0.1s;
+}
+
+.animate-fade-up-delay-2 {
+  animation-delay: 0.2s;
+}
+
+.animate-fade-up-delay-3 {
+  animation-delay: 0.28s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up,
+  .animate-fade-up-delay-1,
+  .animate-fade-up-delay-2,
+  .animate-fade-up-delay-3 {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.hero-blob {
+  animation: hero-shift 20s ease-in-out infinite;
+}
+
+.hero-blob:nth-child(2) {
+  animation-delay: -7s;
+}
+
+.hero-blob:nth-child(3) {
+  animation-delay: -12s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-blob {
+    animation: none;
+  }
+}
+
+.nav-link-hover:hover {
+  background-color: color-mix(
+    in srgb,
+    var(--color-bg-secondary) 85%,
+    transparent
+  );
+  color: var(--color-text-primary);
 }
