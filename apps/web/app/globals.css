@@ -50,15 +50,80 @@
   }
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 body {
   background-color: var(--color-bg);
   color: var(--color-text-primary);
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
+.page-gutter {
+  padding-left: max(1rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1rem, env(safe-area-inset-right, 0px));
+}
+
+@media (min-width: 640px) {
+  .page-gutter {
+    padding-left: max(1.5rem, env(safe-area-inset-left, 0px));
+    padding-right: max(1.5rem, env(safe-area-inset-right, 0px));
+  }
+}
+
+.skip-to-main {
+  position: absolute;
+  left: max(1rem, env(safe-area-inset-left, 0px));
+  top: 0.75rem;
+  z-index: 100;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-border);
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  transform: translateY(-120%);
+  transition: transform 0.2s ease;
+}
+
+.skip-to-main:focus {
+  transform: translateY(0);
+  outline: none;
+}
+
+.skip-to-main:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.nav-link-focus:focus-visible,
+.focus-visible-outline:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
 ::selection {
   background-color: var(--color-accent);
   color: var(--color-bg);
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes hero-shift {
@@ -118,11 +183,143 @@ body {
   }
 }
 
-.nav-link-hover:hover {
-  background-color: color-mix(
-    in srgb,
-    var(--color-bg-secondary) 85%,
-    transparent
-  );
-  color: var(--color-text-primary);
+@media (hover: hover) and (pointer: fine) {
+  .nav-link-hover:hover {
+    background-color: color-mix(
+      in srgb,
+      var(--color-bg-secondary) 85%,
+      transparent
+    );
+    color: var(--color-text-primary);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skip-to-main {
+    transition: none;
+  }
+}
+
+main :where(a, button):focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+/* ── Entity / action / workflow tag palette ── */
+:root {
+  --color-tag-entity:     #a5b4fc;
+  --color-tag-entity-bg:  rgba(99, 102, 241, 0.13);
+  --color-tag-action:     var(--color-accent);
+  --color-tag-action-bg:  var(--color-accent-glow);
+  --color-tag-workflow:   var(--color-success);
+  --color-tag-workflow-bg: color-mix(in srgb, var(--color-success) 14%, transparent);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --color-tag-entity:    #4338ca;
+    --color-tag-entity-bg: rgba(67, 56, 202, 0.09);
+  }
+}
+
+/* ── Hero float ── */
+@keyframes float {
+  0%,  100% { transform: translateY(0px) rotate(-0.5deg); }
+  45%        { transform: translateY(-14px) rotate(0.6deg); }
+  70%        { transform: translateY(-6px) rotate(-0.2deg); }
+}
+
+/* ── Live indicator ── */
+@keyframes indicator-pulse {
+  0%, 90%, 100% { opacity: 1; transform: scale(1); }
+  45%            { opacity: 0.25; transform: scale(0.75); }
+}
+
+/* ── Scan line across hero card ── */
+@keyframes scan {
+  0%   { transform: translateY(0);     opacity: 0; }
+  4%   { opacity: 0.55; }
+  86%  { opacity: 0.55; }
+  100% { transform: translateY(420px); opacity: 0; }
+}
+
+/* ── Registry row slide-in ── */
+@keyframes row-in {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ── Section heading underline reveal ── */
+@keyframes underline-grow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+.hero-float {
+  animation: float 8s ease-in-out infinite;
+}
+
+.live-dot {
+  animation: indicator-pulse 2.6s ease-in-out infinite;
+}
+
+.hero-row {
+  opacity: 0;
+  animation: row-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ── Scroll-reveal stagger ── */
+.reveal-stagger > * {
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity  0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reveal-stagger > *:nth-child(1) { transition-delay:   0ms; }
+.reveal-stagger > *:nth-child(2) { transition-delay:  80ms; }
+.reveal-stagger > *:nth-child(3) { transition-delay: 160ms; }
+.reveal-stagger > *:nth-child(4) { transition-delay: 240ms; }
+.reveal-stagger > *:nth-child(5) { transition-delay: 320ms; }
+.reveal-stagger > *:nth-child(6) { transition-delay: 400ms; }
+
+.reveal-stagger[data-visible="true"] > * {
+  opacity: 1;
+  transform: none;
+}
+
+/* ── Card interactive lift + glow ── */
+.card-lift {
+  transition:
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    filter    0.3s ease,
+    border-color 0.25s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card-lift:hover {
+    transform: translateY(-4px);
+    filter: drop-shadow(0 12px 32px var(--color-accent-glow));
+    border-color: var(--color-border-hover) !important;
+  }
+}
+
+/* Prevent stray bullet markers when li lives inside a Reveal div */
+.reveal-stagger > li {
+  list-style: none;
+}
+
+/* Offset anchor targets so they don't hide under the sticky navbar */
+[id] {
+  scroll-margin-top: 5rem;
+}
+
+/* ── reduced-motion guards ── */
+@media (prefers-reduced-motion: reduce) {
+  .hero-float           { animation: none; }
+  .live-dot             { animation: none; }
+  .hero-row             { animation: none; opacity: 1; }
+  .reveal-stagger > *   { opacity: 1; transform: none; transition: none; }
+  .card-lift            { transition: none; }
 }
