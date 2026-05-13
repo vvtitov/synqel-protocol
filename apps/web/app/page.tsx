@@ -136,7 +136,7 @@ export default function HomePage() {
             Read the Docs &rarr;
           </Link>
           <a
-            href="https://github.com/synqel/synqel-protocol"
+            href="https://github.com/vvtitov/synqel-protocol"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center rounded-lg border px-6 py-3 text-sm font-semibold transition-colors hover:opacity-80"

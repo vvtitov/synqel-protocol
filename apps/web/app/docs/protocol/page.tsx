@@ -325,7 +325,7 @@ export default function ProtocolPage() {
           additions (new optional fields, new event kinds) follow standard
           semver. See{" "}
           <a
-            href="https://github.com/synqel/synqel-protocol/blob/main/CONTRIBUTING.md"
+            href="https://github.com/vvtitov/synqel-protocol/blob/main/CONTRIBUTING.md"
             className="underline"
             style={{ color: "var(--color-accent)" }}
           >

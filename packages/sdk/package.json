@@ -31,9 +31,28 @@
     "zod": "^3.24.4",
     "react": "^19.1.0"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vvtitov/synqel-protocol.git",
+    "directory": "packages/sdk"
+  },
+  "homepage": "https://github.com/vvtitov/synqel-protocol#readme",
+  "bugs": {
+    "url": "https://github.com/vvtitov/synqel-protocol/issues"
+  },
+  "keywords": [
+    "ai",
+    "semantic",
+    "protocol",
+    "agents",
+    "accessibility",
+    "registry",
+    "sdk"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "bun run test && bun run build"
   }
 }
