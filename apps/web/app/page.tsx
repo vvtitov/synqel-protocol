@@ -139,6 +139,45 @@ const USE_CASES = [
   },
 ];
 
+const SPECIALIZED_APPS = [
+  {
+    tag: "Testing",
+    title: "AI-driven E2E & regression testing",
+    description:
+      "Replace brittle CSS selectors with intent and workflow IDs. Tests assert on semantic events and policy decisions — not DOM snapshots — so they survive UI refactors without breaking.",
+    bullets: [
+      "Drive flows by workflow ID, not fragile locators",
+      "Assert on emitted events and policy outcomes",
+      "Replay any agent session for regression coverage",
+    ],
+    accent: "action" as TagColor,
+  },
+  {
+    tag: "Accessibility",
+    title: "Richer-than-ARIA semantic surface",
+    description:
+      "The registry exposes what the app is and what it can do — not just visual roles. Automated a11y auditors, screen readers, and AT tools get structured entities and allowed actions with full machine-readable context.",
+    bullets: [
+      "Entities carry type and purpose, not just DOM role",
+      "Actions declare intent class and policy constraints",
+      "One contract for AT tools, agents, and auditors alike",
+    ],
+    accent: "entity" as TagColor,
+  },
+  {
+    tag: "Marketing & Growth",
+    title: "Semantic funnels and personalization",
+    description:
+      "Expose experiments, campaigns, and conversion steps as first-class semantic workflows. AI agents and analytics tools read the same structured surface to optimize flows, personalize experiences, and measure what matters.",
+    bullets: [
+      "Campaigns and experiments as versioned entities",
+      "Conversion steps registered as ordered workflows",
+      "Policy gates on high-value mutations (upgrades, checkouts)",
+    ],
+    accent: "workflow" as TagColor,
+  },
+] as const;
+
 const BUILDABLE_PRODUCTS = [
   {
     title: "In-app copilot",
@@ -792,6 +831,95 @@ export default function HomePage() {
             </Link>
             .
           </p>
+        </div>
+      </section>
+
+      {/* Specialized applications */}
+      <section
+        className="border-t py-14 sm:py-20 lg:py-24"
+        style={{ borderColor: "var(--color-border)" }}
+      >
+        <div className="page-gutter mx-auto max-w-6xl">
+          <div className="mx-auto max-w-2xl text-center">
+            <p
+              className="text-xs font-bold tracking-[0.2em] uppercase"
+              style={{ color: "var(--color-accent)" }}
+            >
+              Beyond AI agents
+            </p>
+            <h2
+              className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl"
+              style={{ color: "var(--color-text-primary)" }}
+            >
+              Specialized applications
+            </h2>
+            <p
+              className="mt-3 text-sm leading-relaxed sm:text-base"
+              style={{ color: "var(--color-text-secondary)" }}
+            >
+              The same semantic contract that makes your app AI-navigable also
+              unlocks structural advantages in testing, accessibility, and growth.
+            </p>
+          </div>
+          <Reveal className="mt-10 grid gap-6 sm:mt-14 lg:grid-cols-3">
+            {SPECIALIZED_APPS.map((item) => (
+              <article
+                key={item.title}
+                className="card-lift group relative flex flex-col overflow-hidden rounded-2xl border p-6 sm:p-7"
+                style={{
+                  borderColor: "var(--color-border)",
+                  backgroundColor: "var(--color-bg-secondary)",
+                  boxShadow: "0 0 0 1px var(--card-shine) inset",
+                }}
+              >
+                {/* hover glow */}
+                <div
+                  className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full opacity-0 blur-2xl transition-opacity duration-300 md:group-hover:opacity-100"
+                  style={{
+                    background: `radial-gradient(circle, ${TAG_STYLE[item.accent].bg}, transparent 70%)`,
+                  }}
+                  aria-hidden
+                />
+                <span
+                  className="inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider"
+                  style={{
+                    backgroundColor: TAG_STYLE[item.accent].bg,
+                    color: TAG_STYLE[item.accent].text,
+                  }}
+                >
+                  {item.tag}
+                </span>
+                <h3
+                  className="mt-4 text-lg font-bold leading-snug"
+                  style={{ color: "var(--color-text-primary)" }}
+                >
+                  {item.title}
+                </h3>
+                <p
+                  className="mt-2 text-sm leading-relaxed"
+                  style={{ color: "var(--color-text-secondary)" }}
+                >
+                  {item.description}
+                </p>
+                <ul className="mt-5 flex flex-col gap-2">
+                  {item.bullets.map((bullet) => (
+                    <li
+                      key={bullet}
+                      className="flex items-start gap-2 text-xs leading-relaxed"
+                      style={{ color: "var(--color-text-muted)" }}
+                    >
+                      <span
+                        className="mt-[0.3em] shrink-0 size-1.5 rounded-full"
+                        style={{ backgroundColor: TAG_STYLE[item.accent].text }}
+                        aria-hidden
+                      />
+                      {bullet}
+                    </li>
+                  ))}
+                </ul>
+              </article>
+            ))}
+          </Reveal>
         </div>
       </section>
 
