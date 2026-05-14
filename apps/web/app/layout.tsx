@@ -20,12 +20,12 @@ const BASE_URL = "https://synqel.dev";
 export const metadata: Metadata = {
   title: "Synqel Protocol — The open standard for AI-navigable web applications",
   description:
-    "Synqel Protocol defines how any web app describes itself to an AI — entities, actions, workflows, and events as a semantic contract.",
+    "Semantic contract for web apps: entities, actions with JSON Schema inputs, workflows, policy, and events. Complements MCP via @synqel/mcp — transport optional, meaning explicit.",
   metadataBase: new URL(BASE_URL),
   openGraph: {
     title: "Synqel Protocol — The open standard for AI-navigable web applications",
     description:
-      "Synqel Protocol defines how any web app describes itself to an AI — entities, actions, workflows, and events as a semantic contract.",
+      "Semantic contract for web apps: entities, actions with JSON Schema inputs, workflows, policy, and events. Complements MCP via @synqel/mcp — transport optional, meaning explicit.",
     url: BASE_URL,
     siteName: "Synqel Protocol",
     locale: "en_US",
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Synqel Protocol — The open standard for AI-navigable web applications",
     description:
-      "Synqel Protocol defines how any web app describes itself to an AI — entities, actions, workflows, and events as a semantic contract.",
+      "Semantic contract for web apps: entities, actions with JSON Schema inputs, workflows, policy, and events. Complements MCP via @synqel/mcp.",
   },
 };
 

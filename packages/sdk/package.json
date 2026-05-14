@@ -47,12 +47,18 @@
     "agents",
     "accessibility",
     "registry",
-    "sdk"
+    "sdk",
+    "mcp",
+    "json-schema",
+    "zod"
   ],
   "scripts": {
     "build": "tsc",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "bun run test && bun run build"
+  },
+  "dependencies": {
+    "zod-to-json-schema": "^3.25.2"
   }
 }

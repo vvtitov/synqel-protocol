@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
+import { z } from "zod";
 import {
   SemanticRegistry,
   getSemanticRegistry,
@@ -134,6 +135,89 @@ describe("SemanticRegistry", () => {
         registry.registerAction({ id: "x", intent: "invalid" }),
       ).toThrow();
     });
+
+    it("derives inputJsonSchema from optional Zod inputSchema", () => {
+      registry.registerAction({
+        id: "with_input",
+        intent: "query",
+        inputSchema: z.object({ sku: z.string() }),
+      });
+      const action = registry.getAction("with_input");
+      expect(action?.inputJsonSchema).toBeDefined();
+      expect(action?.inputJsonSchema?.properties).toHaveProperty("sku");
+    });
+  });
+
+  describe("executeAction", () => {
+    it("runs bound handler and returns data", async () => {
+      registry.registerAction({ id: "ping", intent: "query" });
+      registry.bindAction("ping", async () => ({ pong: true }));
+      const result = await registry.executeAction("ping", {
+        actor: "human",
+        roles: [],
+      });
+      expect(result.ok).toBe(true);
+      expect(result.data).toEqual({ pong: true });
+    });
+
+    it("validates input when inputSchema was registered", async () => {
+      registry.registerAction({
+        id: "sum",
+        intent: "query",
+        inputSchema: z.object({ a: z.number(), b: z.number() }),
+      });
+      registry.bindAction("sum", async (_ctx, input) => {
+        const x = input as { a: number; b: number };
+        return x.a + x.b;
+      });
+      const bad = await registry.executeAction(
+        "sum",
+        { actor: "human", roles: [] },
+        { a: 1 },
+      );
+      expect(bad.ok).toBe(false);
+
+      const good = await registry.executeAction(
+        "sum",
+        { actor: "human", roles: [] },
+        { a: 1, b: 2 },
+      );
+      expect(good.ok).toBe(true);
+      expect(good.data).toBe(3);
+    });
+
+    it("includes sessionId on action:attempt when provided", async () => {
+      registry.registerAction({ id: "x", intent: "query" });
+      registry.bindAction("x", async () => null);
+      const attempts: RuntimeEvent[] = [];
+      registry.bus.subscribe((e) => {
+        if (e.type === "action:attempt") attempts.push(e);
+      });
+      await registry.executeAction(
+        "x",
+        { actor: "human", roles: [] },
+        undefined,
+        { sessionId: "sess-1" },
+      );
+      expect(attempts).toHaveLength(1);
+      expect(attempts[0]).toMatchObject({
+        type: "action:attempt",
+        sessionId: "sess-1",
+      });
+    });
+
+    it("emits session lifecycle from startSession / endSession", () => {
+      const sess: string[] = [];
+      registry.bus.subscribe((e) => {
+        if (e.type === "session:started" || e.type === "session:ended") {
+          sess.push(`${e.type}:${e.sessionId}`);
+        }
+      });
+      const id = registry.startSession();
+      registry.endSession(id);
+      expect(sess.some((s) => s.startsWith("session:started:"))).toBe(true);
+      expect(sess.some((s) => s.startsWith("session:ended:"))).toBe(true);
+    });
   });
 
   describe("capabilities", () => {
@@ -262,6 +346,25 @@ describe("SemanticRegistry", () => {
       expect(registry.getSnapshot().entities).toHaveLength(0);
       expect(registry.getSnapshot().actions).toHaveLength(0);
       expect(registry.getVersion()).toBe(0);
+    });
+
+    it("clears handlers and Zod input schemas on reset", async () => {
+      registry.registerAction({
+        id: "x",
+        intent: "query",
+        inputSchema: z.object({ n: z.number() }),
+      });
+      registry.bindAction("x", async () => "ok");
+      registry.reset();
+
+      registry.registerAction({ id: "x", intent: "query" });
+      const result = await registry.executeAction(
+        "x",
+        { actor: "human", roles: [] },
+        undefined,
+      );
+      expect(result.ok).toBe(false);
+      expect(result.message).toContain("No handler");
     });
   });
 });

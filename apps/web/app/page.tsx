@@ -13,32 +13,43 @@ const BEFORE_CODE = `<!-- What AI sees today: raw HTML soup -->
   </button>
 </div>`;
 
-const AFTER_CODE = `// With Synqel: structured registry snapshot
-{
-  "entities": [
-    {
-      "id": "product_123",
-      "type": "product",
-      "metadata": { "price": 299 }
-    }
-  ],
-  "actions": [
-    {
-      "id": "add_to_cart",
-      "intent": "mutation",
-      "deterministic": true
-    }
-  ],
-  "capabilities": {
-    "canSearch": true,
-    "canCheckout": true
-  },
-  "workflows": [
-    {
-      "id": "checkout_flow",
-      "steps": ["add_to_cart", "confirm_order"]
-    }
-  ]
+const AFTER_CODE = `{
+  "format": "synqel.snapshot.v1",
+  "registryVersion": 12,
+  "snapshot": {
+    "entities": [
+      {
+        "id": "product_123",
+        "type": "product",
+        "metadata": { "price": 299 }
+      }
+    ],
+    "actions": [
+      {
+        "id": "add_to_cart",
+        "intent": "mutation",
+        "deterministic": true,
+        "inputJsonSchema": {
+          "type": "object",
+          "properties": {
+            "sku": { "type": "string" },
+            "qty": { "type": "number" }
+          },
+          "additionalProperties": false
+        }
+      }
+    ],
+    "capabilities": {
+      "canSearch": true,
+      "canCheckout": true
+    },
+    "workflows": [
+      {
+        "id": "checkout_flow",
+        "steps": ["add_to_cart", "confirm_order"]
+      }
+    ]
+  }
 }`;
 
 const STEPS = [
@@ -58,7 +69,7 @@ const STEPS = [
     number: "03",
     title: "Execute",
     description:
-      "Policy-gated actions run safely with a full event audit trail. Every attempt, decision, and result is captured as a semantic event.",
+      "Policy gates each attempt; optional JSON Schema validates payloads; bound handlers run your real business logic. Every step emits semantic events for audits and observability.",
   },
 ];
 
@@ -74,9 +85,9 @@ const PRINCIPLES = [
       "Policy gates prevent AI agents from executing mutations without explicit permission. Every action goes through a composable rule chain.",
   },
   {
-    title: "Framework-agnostic",
+    title: "MCP-ready, not MCP-competitive",
     description:
-      "Works with any frontend framework. The React hook is an optional convenience — the core SDK is pure TypeScript with zero framework coupling.",
+      "Synqel defines meaning and governance; MCP is optional transport. Ship the same registry via React hooks, HTTP snapshot routes, or `@synqel/mcp` tools (`synqel_get_snapshot`, `synqel_execute_action`).",
   },
 ];
 
@@ -185,9 +196,9 @@ const BUILDABLE_PRODUCTS = [
       "A chat or command palette that reads the same registry snapshot your external agents use — one contract, two audiences.",
   },
   {
-    title: "Agent bridge (MCP / tools API)",
+    title: "Agent bridge (`@synqel/mcp`)",
     description:
-      "Map entities and actions to tool definitions so Claude, ChatGPT, or custom agents can plan and execute with your app’s semantics.",
+      "Stdio MCP tools expose snapshot + execution to Claude Desktop, Cursor, and other MCP hosts — without inventing a parallel agent protocol.",
   },
   {
     title: "Agent-native E2E testing",
@@ -213,8 +224,8 @@ const BUILDABLE_PRODUCTS = [
 
 const STATS = [
   { label: "Open standard", value: "MIT" },
-  { label: "Runtime deps", value: "Zod only" },
-  { label: "Surfaces", value: "Entities · Actions · Events" },
+  { label: "Contract stack", value: "SDK · Policy · Events" },
+  { label: "Agent surface", value: "HTTP · MCP · React" },
 ];
 
 type TagColor = "entity" | "action" | "workflow";
@@ -289,7 +300,7 @@ function HeroVisual() {
               style={{ backgroundColor: "var(--color-success)" }}
             />
             <span style={{ color: "var(--color-text-secondary)" }}>
-              registry.snapshot()
+              synqel.snapshot.v1
             </span>
           </div>
           <span
@@ -409,7 +420,7 @@ export default function HomePage() {
                     className="live-dot size-1.5 rounded-full"
                     style={{ backgroundColor: "var(--color-success)" }}
                   />
-                  ARIA for AI agents · Open standard
+                  ARIA for AI agents · Semantic layer · MCP-ready
                 </span>
               </div>
 
@@ -452,9 +463,9 @@ export default function HomePage() {
                 , and what{" "}
                 <strong style={{ color: "var(--color-text-primary)", fontWeight: 600 }}>
                   rules apply
-                </strong>{" "}
-                — as a versioned semantic contract any AI agent can read and
-                reason about.
+              </strong>{" "}
+              — as a versioned semantic contract any AI agent can read over HTTP,
+              MCP, or in-process hooks — without scraping fragile markup.
               </p>
 
               <div className="animate-fade-up animate-fade-up-delay-3 mt-8 flex w-full max-w-[22rem] flex-col gap-3 sm:max-w-none sm:flex-row sm:items-center lg:w-auto">
@@ -633,7 +644,8 @@ export default function HomePage() {
               style={{ color: "var(--color-text-secondary)" }}
             >
               Without Synqel, agents parse opaque markup. With Synqel, they get
-              a registry snapshot — the same surface your runtime exposes.
+              a versioned envelope with your registry snapshot — intent,
+              optional JSON Schema per action, workflows, and capabilities.
             </p>
           </div>
           <div className="mt-10 grid gap-6 sm:mt-14 lg:grid-cols-2 lg:gap-8">
@@ -683,7 +695,7 @@ export default function HomePage() {
               <CodeBlock
                 code={AFTER_CODE}
                 language="json"
-                title="After — Synqel snapshot"
+                title="After — Synqel envelope (synqel.snapshot.v1)"
               />
             </div>
           </div>

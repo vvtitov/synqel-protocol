@@ -52,11 +52,20 @@ export function Nav() {
   useEffect(() => {
     const header = headerRef.current;
     if (!header) return;
-    const obs = new ResizeObserver(() => {
-      setHeaderHeight(header.getBoundingClientRect().height);
-    });
+    function publishMetrics() {
+      const hEl = headerRef.current;
+      if (!hEl) return;
+      const height = Math.ceil(hEl.getBoundingClientRect().height);
+      setHeaderHeight(height);
+      document.documentElement.style.setProperty(
+        "--doc-scroll-margin",
+        `${height}px`,
+      );
+      window.dispatchEvent(new Event("synqel:doc-scroll-anchor"));
+    }
+    const obs = new ResizeObserver(publishMetrics);
     obs.observe(header);
-    setHeaderHeight(header.getBoundingClientRect().height);
+    publishMetrics();
     return () => obs.disconnect();
   }, []);
 

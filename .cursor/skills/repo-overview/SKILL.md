@@ -12,12 +12,15 @@ description: >-
 
 An open standard that makes web applications AI-navigable. Analogous to ARIA for screen readers — instead of exposing visual DOM structure, it exposes **semantic facts**: entities, actions, capabilities, and workflows as a structured contract any AI agent can read and act on.
 
+**Transport:** Synqel is not an MCP competitor. Use **`@synqel/mcp`** when you want the registry exposed as MCP tools; the SDK also provides HTTP-friendly snapshot helpers (`synqelSnapshotJsonResponse`).
+
 ## Monorepo structure
 
 ```
 synqel-protocol/
 ├── packages/
-│   └── sdk/               # @synqel/sdk — publishable NPM package
+│   ├── sdk/               # @synqel/sdk — publishable NPM package
+│   └── mcp/               # @synqel/mcp — MCP adapter (stdio tools)
 ├── apps/
 │   └── web/               # @synqel/web — Next.js 15 docs/marketing site
 ├── docs/                  # Protocol markdown specs (consumed by apps/web)
@@ -37,7 +40,8 @@ synqel-protocol/
 |-------|------|-------|
 | 1 — Protocol | Open spec | `docs/` |
 | 2 — SDK | `@synqel/sdk` TypeScript library | `packages/sdk/` |
-| 3 — Runtime | Server-side execution, policy, events | `packages/sdk/` |
+| Transport | `@synqel/mcp` (optional MCP bridge) | `packages/mcp/` |
+| 3 — Runtime | Registry, policy, events, action handlers | `packages/sdk/` |
 | 4 — Platform | Synqel SaaS | Separate repo |
 
 ## Package manager
@@ -47,9 +51,9 @@ Use **Bun** (primary). `bun.lock` is the source of truth.
 ```bash
 bun install            # install all workspaces
 bun run dev            # start web app (Turbopack)
-bun run build          # build SDK (tsc) then web (next build)
+bun run build          # build SDK → MCP adapter → web (next build)
 bun run test           # run SDK tests (Vitest)
-bun run typecheck      # tsc --noEmit for SDK + web
+bun run typecheck      # tsc --noEmit for SDK + MCP + web
 ```
 
 Run SDK tests directly:

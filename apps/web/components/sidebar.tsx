@@ -3,7 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useDocsScrollSpyActiveHref } from "@/hooks/use-docs-scroll-spy";
-import { DOC_NAV_SECTIONS, DOC_SECTION_PAGES } from "@/lib/docs-nav";
+import { focusDocsHrefFragment } from "@/lib/docs-in-page-hash";
+import {
+  DOC_NAV_SECTIONS,
+  DOC_SECTION_PAGES,
+  docPageMatchesPathname,
+} from "@/lib/docs-nav";
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -17,7 +22,9 @@ export function Sidebar() {
       <nav className="flex flex-col gap-6" aria-label="Documentation">
         {DOC_NAV_SECTIONS.map((section) => {
           const sectionPages = DOC_SECTION_PAGES[section.title] ?? [];
-          const isSectionActive = sectionPages.includes(pathname);
+          const isSectionActive = sectionPages.some((p) =>
+            docPageMatchesPathname(p, pathname),
+          );
 
           return (
             <div key={section.title}>
@@ -36,7 +43,7 @@ export function Sidebar() {
                   const isAnchor = item.href.includes("#");
                   const pagePath = item.href.split("#")[0] ?? item.href;
 
-                  const isOnDocPage = pathname === pagePath;
+                  const isOnDocPage = docPageMatchesPathname(pagePath, pathname);
                   const isScrollActive =
                     isOnDocPage &&
                     scrollActiveHref !== null &&
@@ -46,6 +53,20 @@ export function Sidebar() {
                     <li key={item.href}>
                       <Link
                         href={item.href}
+                        onClick={(e) => {
+                          if (
+                            e.button !== 0 ||
+                            e.metaKey ||
+                            e.ctrlKey ||
+                            e.shiftKey ||
+                            e.altKey
+                          ) {
+                            return;
+                          }
+                          if (focusDocsHrefFragment(pathname, item.href)) {
+                            e.preventDefault();
+                          }
+                        }}
                         aria-current={
                           isScrollActive && isOnDocPage ? "location" : undefined
                         }

@@ -3,10 +3,10 @@
 import { useState } from "react";
 
 const PACKAGE_MANAGERS = {
-  bun:  "bun add @synqel/sdk",
-  npm:  "npm install @synqel/sdk",
-  pnpm: "pnpm add @synqel/sdk",
-  yarn: "yarn add @synqel/sdk",
+  bun: "bun add @synqel/sdk zod",
+  npm: "npm install @synqel/sdk zod",
+  pnpm: "pnpm add @synqel/sdk zod",
+  yarn: "yarn add @synqel/sdk zod",
 } as const;
 
 type PM = keyof typeof PACKAGE_MANAGERS;

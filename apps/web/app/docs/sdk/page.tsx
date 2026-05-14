@@ -10,12 +10,72 @@ const entity = registerEntity({
 // metadata defaults to {} if omitted`;
 
 const REGISTER_ACTION_CODE = `import { registerAction } from "@synqel/sdk";
+import { z } from "zod";
 
-const action = registerAction({
+// Minimal action
+registerAction({
+  id: "go_home",
+  intent: "navigation",
+});
+
+// With Zod input → derives inputJsonSchema + validates on executeAction
+registerAction({
   id: "add_to_cart",
   intent: "mutation",
-  deterministic: true,  // defaults to true if omitted
+  inputSchema: z.object({
+    sku: z.string(),
+    qty: z.number().int().positive(),
+  }),
 });`;
+
+const BIND_ACTION_CODE = `import { bindAction, registerAction } from "@synqel/sdk";
+
+registerAction({ id: "ping", intent: "query" });
+
+bindAction("ping", async (_ctx, input) => {
+  return { pong: true, echo: input };
+});
+
+// unbindAction("ping") removes the handler`;
+
+const EXECUTE_ACTION_CODE = `import {
+  executeAction,
+  registerAction,
+  bindAction,
+  getSemanticRegistry,
+} from "@synqel/sdk";
+
+registerAction({ id: "ping", intent: "query" });
+bindAction("ping", async () => ({ ok: true }));
+
+const registry = getSemanticRegistry();
+const sessionId = registry.startSession();
+
+await executeAction(
+  "ping",
+  { actor: "human", roles: [] },
+  undefined,
+  { sessionId },
+);
+
+registry.endSession(sessionId);`;
+
+const SNAPSHOT_CODE = `import {
+  createSnapshotEnvelope,
+  serializeSnapshotEnvelope,
+  synqelSnapshotJsonResponse,
+  getSemanticRegistry,
+} from "@synqel/sdk";
+
+const registry = getSemanticRegistry();
+
+const envelope = createSnapshotEnvelope(registry);
+const json = serializeSnapshotEnvelope(registry);
+
+// Next.js Route Handler — e.g. GET /.synqel/snapshot
+export function GET() {
+  return synqelSnapshotJsonResponse(getSemanticRegistry());
+}`;
 
 const REGISTER_CAPABILITY_CODE = `import { registerCapability } from "@synqel/sdk";
 
@@ -31,54 +91,44 @@ const workflow = registerWorkflow({
 });
 // steps must have at least 1 entry, each non-empty string`;
 
-const REGISTRY_CODE = `import { getSemanticRegistry, SemanticRegistry } from "@synqel/sdk";
+const REGISTRY_CODE = `import { getSemanticRegistry } from "@synqel/sdk";
 
-// Singleton — same instance everywhere in your app
 const registry = getSemanticRegistry();
 
-// Register directly on the instance
 registry.registerEntity({ id: "e1", type: "product" });
 registry.registerAction({ id: "a1", intent: "query" });
+registry.bindAction("a1", async () => "done");
 
-// Read back
-const entity = registry.getEntity("e1");
-const action = registry.getAction("a1");
-const workflow = registry.getWorkflow("checkout_flow");
+await registry.executeAction("a1", { actor: "human", roles: [] });
 
-// Full snapshot for AI agent consumption
+const sid = registry.startSession();
+registry.endSession(sid);
+
 const snapshot = registry.getSnapshot();
-
-// Version counter increments on every registration
 const version = registry.getVersion();
 
-// Update and remove entities
 registry.updateEntity({ id: "e1", type: "product", metadata: { price: 399 } });
 registry.removeEntity("e1");
 
-// Reset (primarily for tests)
 registry.reset();`;
 
 const EVENT_BUS_CODE = `import { getSemanticRegistry } from "@synqel/sdk";
 
 const registry = getSemanticRegistry();
 
-// Subscribe returns an unsubscribe function
 const unsubscribe = registry.bus.subscribe((event) => {
   console.log(event.type, event);
 });
 
-// Events fire on every registry operation
 registry.registerEntity({ id: "e1", type: "product" });
-// → logs: "entity:registered" { type: "entity:registered", entity: { id: "e1", ... } }
 
-// Stop listening
 unsubscribe();`;
 
 const EVALUATE_POLICY_CODE = `import { evaluatePolicy } from "@synqel/sdk";
 import type { PolicyContext, PolicyRule, SemanticAction } from "@synqel/sdk";
 
 const ctx: PolicyContext = {
-  actor: "agent",    // "human" | "agent" | "voice"
+  actor: "agent",
   roles: ["viewer"],
 };
 
@@ -88,16 +138,13 @@ const action: SemanticAction = {
   deterministic: true,
 };
 
-// Default rule: agents cannot run mutations without "admin" role
 const decision = evaluatePolicy(ctx, action);
-// → { allowed: false, reason: "Agents cannot execute mutation actions..." }
 
-// Custom rules compose — first denied decision wins
 const ownerOnly: PolicyRule = (ctx, action) => {
   if (action.id === "delete_account" && !ctx.roles.includes("owner")) {
     return { allowed: false, reason: "Only owners can delete accounts." };
   }
-  return null; // pass to next rule
+  return null;
 };
 
 evaluatePolicy(ctx, action, [ownerOnly]);`;
@@ -105,23 +152,21 @@ evaluatePolicy(ctx, action, [ownerOnly]);`;
 const USE_SEMANTIC_RUNTIME_CODE = `import { useSemanticRuntime } from "@synqel/sdk/react";
 
 function MyComponent() {
-  const { registry, snapshot, executeAction } = useSemanticRuntime();
+  const { snapshot, executeAction } = useSemanticRuntime();
 
-  // snapshot is reactive — re-renders on registry changes
-  // snapshot.entities: SemanticEntity[]
-  // snapshot.actions: SemanticAction[]
-  // snapshot.capabilities: CapabilityProfile
-  // snapshot.workflows: WorkflowDefinition[]
-
-  // executeAction runs the policy gate, then emits events
   const handleClick = () => {
-    executeAction("submit_form", {
-      actor: "human",
-      roles: ["customer"],
-    });
+    void executeAction(
+      "submit_form",
+      { actor: "human", roles: ["customer"] },
+      { formId: "checkout" },
+    );
   };
 
-  return <button onClick={handleClick}>Submit</button>;
+  return (
+    <button type="button" onClick={handleClick}>
+      Submit ({snapshot.actions.length} actions)
+    </button>
+  );
 }`;
 
 const USE_SEMANTIC_EVENTS_CODE = `import { useSemanticEvents } from "@synqel/sdk/react";
@@ -155,10 +200,19 @@ export default function SdkPage() {
         className="mt-4 text-lg leading-relaxed"
         style={{ color: "var(--color-text-secondary)" }}
       >
-        Complete API reference for <code style={{ color: "var(--color-accent)", fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>@synqel/sdk</code>.
-        The SDK is universal TypeScript with zero runtime dependencies except{" "}
-        <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>zod</code>. React integration is available
-        from the <code style={{ color: "var(--color-accent)", fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>@synqel/sdk/react</code> entry point.
+        Complete API reference for{" "}
+        <code style={{ color: "var(--color-accent)", fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>@synqel/sdk</code>.
+        Peer dependency:{" "}
+        <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>zod</code>.
+        The package bundles{" "}
+        <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>zod-to-json-schema</code>{" "}
+        so optional Zod action inputs become JSON Schema in snapshots. React lives under{" "}
+        <code style={{ color: "var(--color-accent)", fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>@synqel/sdk/react</code>.
+        For MCP stdio hosts, see{" "}
+        <a href="#synqel-mcp" className="underline" style={{ color: "var(--color-accent)" }}>
+          @synqel/mcp
+        </a>{" "}
+        below.
       </p>
 
       <section id="registerEntity" className="mt-12">
@@ -166,8 +220,7 @@ export default function SdkPage() {
         <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
           Validates the input against the entity Zod schema and registers it in the global registry.
           Returns the parsed <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>SemanticEntity</code>.
-          Emits an <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>entity:registered</code> event.
-          Throws a <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>ZodError</code> if validation fails.
+          Emits <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>entity:registered</code>.
         </p>
         <div className="mt-4">
           <CodeBlock code={REGISTER_ENTITY_CODE} language="typescript" />
@@ -177,21 +230,57 @@ export default function SdkPage() {
       <section id="registerAction" className="mt-12">
         <h2 className="text-2xl font-semibold" style={{ color: "var(--color-text-primary)" }}>registerAction</h2>
         <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
-          Validates and registers a semantic action. The <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>deterministic</code> field
-          defaults to <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>true</code>. Emits an{" "}
-          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>action:registered</code> event.
+          Validates and registers a semantic action. Optional{" "}
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>inputSchema</code> (Zod) is accepted at registration:
+          it fills <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>inputJsonSchema</code> on the stored action and validates payloads during{" "}
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>executeAction</code>.
         </p>
         <div className="mt-4">
           <CodeBlock code={REGISTER_ACTION_CODE} language="typescript" />
         </div>
       </section>
 
+      <section id="bindAction" className="mt-12">
+        <h2 className="text-2xl font-semibold" style={{ color: "var(--color-text-primary)" }}>bindAction</h2>
+        <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
+          Associates an action id with a handler invoked after policy passes and optional input validation.
+          Also available as <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>registry.bindAction</code>.
+          Use <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>unbindAction(id)</code> to remove.
+        </p>
+        <div className="mt-4">
+          <CodeBlock code={BIND_ACTION_CODE} language="typescript" />
+        </div>
+      </section>
+
+      <section id="executeAction" className="mt-12">
+        <h2 className="text-2xl font-semibold" style={{ color: "var(--color-text-primary)" }}>executeAction</h2>
+        <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
+          Async pipeline: emit <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>action:attempt</code> →{" "}
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>evaluatePolicy</code> → optional Zod parse → handler →{" "}
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>action:result</code>.
+          Top-level <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>executeAction(...)</code> delegates to the global registry.
+        </p>
+        <div className="mt-4">
+          <CodeBlock code={EXECUTE_ACTION_CODE} language="typescript" />
+        </div>
+      </section>
+
+      <section id="snapshot" className="mt-12">
+        <h2 className="text-2xl font-semibold" style={{ color: "var(--color-text-primary)" }}>Snapshot serialization</h2>
+        <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
+          Stable envelope <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>synqel.snapshot.v1</code> with{" "}
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>registryVersion</code> plus helpers for JSON strings and HTTP responses.
+        </p>
+        <div className="mt-4">
+          <CodeBlock code={SNAPSHOT_CODE} language="typescript" />
+        </div>
+      </section>
+
       <section id="registerCapability" className="mt-12">
         <h2 className="text-2xl font-semibold" style={{ color: "var(--color-text-primary)" }}>registerCapability</h2>
         <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
-          Registers application-level capabilities. Capabilities merge incrementally — calling this
-          multiple times adds to the existing profile. Emits a{" "}
-          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>capability:registered</code> event.
+          Registers application-level capabilities. Capabilities merge incrementally.
+          Emits <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>capability:registered</code>.
         </p>
         <div className="mt-4">
           <CodeBlock code={REGISTER_CAPABILITY_CODE} language="typescript" />
@@ -201,9 +290,7 @@ export default function SdkPage() {
       <section id="registerWorkflow" className="mt-12">
         <h2 className="text-2xl font-semibold" style={{ color: "var(--color-text-primary)" }}>registerWorkflow</h2>
         <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
-          Registers a named workflow with an ordered sequence of step IDs.
-          Steps must have at least one entry. Emits a{" "}
-          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>workflow:registered</code> event.
+          Registers a named workflow. Emits <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>workflow:registered</code>.
         </p>
         <div className="mt-4">
           <CodeBlock code={REGISTER_WORKFLOW_CODE} language="typescript" />
@@ -213,9 +300,9 @@ export default function SdkPage() {
       <section id="SemanticRegistry" className="mt-12">
         <h2 className="text-2xl font-semibold" style={{ color: "var(--color-text-primary)" }}>SemanticRegistry</h2>
         <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
-          The core class that holds all registered entities, actions, capabilities, and workflows.
-          Access the global singleton via <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>getSemanticRegistry()</code>.
-          The registry tracks a version counter that increments on every mutation.
+          Core registry: CRUD, bind/execute, sessions, snapshot, version. Access singleton via{" "}
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>getSemanticRegistry()</code>.
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}> reset()</code> clears handlers and Zod input maps too.
         </p>
         <div className="mt-4">
           <CodeBlock code={REGISTRY_CODE} language="typescript" />
@@ -225,10 +312,7 @@ export default function SdkPage() {
       <section id="SemanticEventBus" className="mt-12">
         <h2 className="text-2xl font-semibold" style={{ color: "var(--color-text-primary)" }}>SemanticEventBus</h2>
         <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
-          A lightweight pub/sub event bus attached to every registry instance
-          at <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>registry.bus</code>. Every registry operation emits a typed{" "}
-          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>RuntimeEvent</code>.
-          Subscribe returns an unsubscribe function.
+          Pub/sub at <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>registry.bus</code>. Subscribe returns unsubscribe.
         </p>
         <div className="mt-4">
           <CodeBlock code={EVENT_BUS_CODE} language="typescript" />
@@ -238,9 +322,7 @@ export default function SdkPage() {
       <section id="evaluatePolicy" className="mt-12">
         <h2 className="text-2xl font-semibold" style={{ color: "var(--color-text-primary)" }}>evaluatePolicy</h2>
         <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
-          Evaluates a chain of policy rules against a context and action.
-          Custom rules run first; the built-in default rule runs last.
-          The first non-null denied decision wins. If all rules pass, the action is allowed.
+          Custom rules first; bundled default last. First denial wins.
         </p>
         <div className="mt-4">
           <CodeBlock code={EVALUATE_POLICY_CODE} language="typescript" />
@@ -250,15 +332,14 @@ export default function SdkPage() {
       <section id="useSemanticRuntime" className="mt-12">
         <h2 className="text-2xl font-semibold" style={{ color: "var(--color-text-primary)" }}>useSemanticRuntime</h2>
         <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
-          React hook that provides reactive access to the registry snapshot.
-          Uses <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>useSyncExternalStore</code> for
-          tear-free reads. Returns the registry instance, current snapshot, and
-          an <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>executeAction</code> function that runs
-          the policy gate before executing.
+          Reactive snapshot via <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>useSyncExternalStore</code>.
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}> executeAction</code> returns a{" "}
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>Promise</code> — use{" "}
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>void executeAction(...)</code> in sync handlers or{" "}
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>async</code> flows as needed.
         </p>
         <p className="mt-2 text-sm" style={{ color: "var(--color-text-muted)" }}>
-          Import from <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>@synqel/sdk/react</code> — this
-          export requires the <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>&quot;use client&quot;</code> directive.
+          Requires <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>&quot;use client&quot;</code>.
         </p>
         <div className="mt-4">
           <CodeBlock code={USE_SEMANTIC_RUNTIME_CODE} language="typescript" />
@@ -268,14 +349,32 @@ export default function SdkPage() {
       <section id="useSemanticEvents" className="mt-12">
         <h2 className="text-2xl font-semibold" style={{ color: "var(--color-text-primary)" }}>useSemanticEvents</h2>
         <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
-          React hook that subscribes to all registry events via{" "}
-          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>useEffect</code>.
-          Pass a stable callback (wrapped in <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>useCallback</code>)
-          to avoid unnecessary resubscriptions.
+          Subscribes via <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>useEffect</code>; pass a stable callback.
         </p>
         <div className="mt-4">
           <CodeBlock code={USE_SEMANTIC_EVENTS_CODE} language="typescript" />
         </div>
+      </section>
+
+      <section id="synqel-mcp" className="mt-12">
+        <h2 className="text-2xl font-semibold" style={{ color: "var(--color-text-primary)" }}>
+          MCP adapter (<code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>@synqel/mcp</code>)
+        </h2>
+        <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
+          Sibling package in this monorepo. Registers MCP tools{" "}
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>synqel_get_snapshot</code> and{" "}
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>synqel_execute_action</code> so hosts connect via stdio without a custom wire protocol.
+          Install with your package manager once published alongside the SDK; source:{" "}
+          <a
+            href="https://github.com/vvtitov/synqel-protocol/tree/main/packages/mcp"
+            className="underline"
+            style={{ color: "var(--color-accent)" }}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            packages/mcp
+          </a>.
+        </p>
       </section>
     </article>
   );

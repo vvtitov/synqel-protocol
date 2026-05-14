@@ -26,25 +26,27 @@
 
 | Event Kind | When it fires | Payload |
 |---|---|---|
-| `semantic.action.attempt` | Action execution is attempted (before policy) | `{ type: "action:attempt"; actionId: string; context: PolicyContext }` |
-| `semantic.action.result` | After policy evaluation completes | `{ type: "action:result"; actionId: string; ok: boolean; message?: string }` |
-| `semantic.action.executed` | Action passes policy and executes | `{ type: "action:executed"; actionId: string }` |
+| `semantic.action.attempt` | Action execution is attempted (before policy) | `{ type: "action:attempt"; actionId: string; context: PolicyContext; sessionId?: string }` |
+| `semantic.action.result` | After execution attempt completes | `{ type: "action:result"; actionId: string; ok: boolean; message?: string; data?: unknown }` |
+| `semantic.action.executed` | Action passes policy; handler ran successfully | `{ type: "action:executed"; actionId: string }` |
 
 ## semantic.workflow
 
 | Event Kind | When it fires | Payload |
 |---|---|---|
-| `semantic.workflow.started` | Workflow execution begins | `{ type: "workflow:started"; workflowId: string }` |
+| `semantic.workflow.started` | Workflow orchestration begins | `{ type: "workflow:started"; workflowId: string }` |
 | `semantic.workflow.step` | Workflow advances to next step | `{ type: "workflow:step"; workflowId: string; stepIndex: number; stepId: string }` |
 | `semantic.workflow.completed` | All steps complete successfully | `{ type: "workflow:completed"; workflowId: string }` |
 | `semantic.workflow.failed` | Workflow fails at any step | `{ type: "workflow:failed"; workflowId: string; error: string }` |
+
+> **SDK note:** `registerWorkflow()` emits **`workflow:registered`** on the in-process bus (colon notation). There is no `semantic.workflow.registered` entry in `EVENT_KINDS` yet — taxonomy constants above align with future orchestration. **`semantic.action.attempt`** payloads may include optional **`sessionId`** when callers pass one into `executeAction`.
 
 ## semantic.session
 
 | Event Kind | When it fires | Payload |
 |---|---|---|
-| `semantic.session.started` | AI agent session begins | `{ type: "session:started"; sessionId: string }` |
-| `semantic.session.ended` | AI agent session ends | `{ type: "session:ended"; sessionId: string }` |
+| `semantic.session.started` | `SemanticRegistry.startSession()` (or host lifecycle) | `{ type: "session:started"; sessionId: string }` |
+| `semantic.session.ended` | `SemanticRegistry.endSession(sessionId)` | `{ type: "session:ended"; sessionId: string }` |
 | `semantic.session.heartbeat` | Periodic signal that session is active | Taxonomy-only (not yet in RuntimeEvent union) |
 
 ## semantic.intent
