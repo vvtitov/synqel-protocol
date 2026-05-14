@@ -13,10 +13,11 @@ description: >-
 ```
 packages/sdk/src/
 ├── types.ts          # Zod schemas + inferred TypeScript types
-├── registry.ts       # SemanticRegistry, SemanticEventBus, singleton
+├── registry.ts       # SemanticRegistry (CRUD, bind/execute, sessions), SemanticEventBus, singleton
+├── snapshot.ts       # Synqel snapshot envelope + HTTP Response helper
 ├── policy.ts         # evaluatePolicy + default rules
 ├── event-taxonomy.ts # EVENT_KINDS / EVENT_CATEGORIES constants + helpers
-├── index.ts          # Public API barrel + convenience register* wrappers
+├── index.ts          # Public API barrel + convenience wrappers
 └── react.ts          # React hooks ("use client")
 ```
 
@@ -24,9 +25,11 @@ packages/sdk/src/
 
 ### Types
 ```typescript
-SemanticEntity, SemanticAction, CapabilityProfile, WorkflowDefinition
+SemanticEntity, SemanticAction, RegisterActionInput, CapabilityProfile, WorkflowDefinition
 PolicyContext, PolicyDecision, PolicyRule
 RuntimeEvent, RegistrySnapshot
+ActionExecutionContext, SemanticActionHandler, ExecuteActionOptions, ExecuteActionResult
+SynqelSnapshotEnvelope (via `@synqel/sdk` barrel)
 EventCategory, EventKind
 ```
 
@@ -35,19 +38,23 @@ EventCategory, EventKind
 entitySchema, actionSchema, capabilitySchema, workflowSchema
 ```
 
-### Registry
+### Registry & serialization
 ```typescript
-getSemanticRegistry()              // global singleton
-resetSemanticRegistryForTests()    // nulls singleton — tests only
+getSemanticRegistry()
+resetSemanticRegistryForTests()
 SemanticRegistry, SemanticEventBus
+createSnapshotEnvelope, serializeSnapshotEnvelope, synqelSnapshotJsonResponse
 ```
 
-### Convenience registrars (delegate to global registry)
+### Convenience helpers (delegate to global registry)
 ```typescript
-registerEntity(entity: SemanticEntity)
-registerAction(action: SemanticAction)
-registerCapability(profile: CapabilityProfile)
-registerWorkflow(workflow: WorkflowDefinition)
+registerEntity(...)
+registerAction(RegisterActionInput)   // supports optional `inputSchema` (Zod)
+registerCapability(profile)
+registerWorkflow(workflow)
+bindAction(actionId, handler)
+unbindAction(actionId)
+executeAction(actionId, ctx, input?, options?) // Promise<ExecuteActionResult>
 ```
 
 ### Policy
@@ -68,7 +75,7 @@ isValidEventKind(kind: string): kind is EventKind
 useSemanticRuntime()
 // returns: { registry, snapshot, executeAction }
 // snapshot uses useSyncExternalStore — re-renders on registry mutations
-// executeAction(actionId, context): emits action:attempt → evaluatePolicy → emits result
+// executeAction(actionId, context, input?, options?): Promise — policy → Zod validation → handler
 
 useSemanticEvents(onEvent: (e: RuntimeEvent) => void)
 // subscribes to the bus via useEffect
@@ -77,15 +84,17 @@ useSemanticEvents(onEvent: (e: RuntimeEvent) => void)
 ## Key design rules
 
 - **Zod validation on all register calls** — schemas live in `types.ts`; throw on invalid input
-- **Registry versioning** — a counter is bumped on every mutation; exposed in `RegistrySnapshot`
+- **Optional action inputs** — pass Zod `inputSchema` alongside `registerAction`; serialized JSON Schema lands on `SemanticAction.inputJsonSchema`
+- **Handlers** — `bindAction` registers imperative code; `executeAction` validates + evaluates policy + invokes handler
+- **Registry versioning** — a counter is bumped on structural mutations (`register*` paths); exposed via `getVersion()` / snapshot envelope
 - **`getEntity` emits `entity:queried`** event on the bus when a hit occurs
-- **`reset()`** clears all maps (used by `resetSemanticRegistryForTests`)
+- **`reset()`** clears entities/actions/workflows/caps **and** handlers + stored Zod input schemas
 - **Event bus is in-process** — `RuntimeEvent` union uses colon notation (`entity:registered`, `action:attempt`); `event-taxonomy.ts` constants use dot notation (`semantic.entity.registered`) — these are parallel systems
 
 ### Event system nuance
 `RuntimeEvent` union ≠ `EVENT_KINDS` taxonomy 1-to-1:
 - `semantic.session.heartbeat` exists in taxonomy but **not** in `RuntimeEvent` union
-- `action:registered` exists in `RuntimeEvent` but maps to `semantic.action.registered` in taxonomy
+- `workflow:registered`, `action:registered`, and similar colon-style payloads may **not** yet have a matching `semantic.*` constant — coordinate docs + taxonomy changes deliberately (often requires PR checklist items)
 
 ## Adding a new feature — checklist
 
@@ -146,3 +155,6 @@ Always call `resetSemanticRegistryForTests()` in `beforeEach` to avoid singleton
 
 `prepublishOnly` runs `test` then `build`. Package `files` includes only `dist/`.
 Peer deps: `zod >=3` (required), `react >=18` (optional, only for `./react`).
+Runtime deps (published with the package): `zod-to-json-schema` (JSON Schema export for actions).
+
+Transport-specific adapters (e.g. `@synqel/mcp`) live outside `packages/sdk` on purpose.

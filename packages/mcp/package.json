@@ -1,0 +1,32 @@
+{
+  "name": "@synqel/mcp",
+  "version": "0.1.0",
+  "description": "Model Context Protocol adapter for Synqel — expose registry snapshot and execute actions over MCP",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": ["dist"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vvtitov/synqel-protocol.git",
+    "directory": "packages/mcp"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "@synqel/sdk": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "zod": "^3.24.4"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "start": "node dist/cli.js"
+  }
+}

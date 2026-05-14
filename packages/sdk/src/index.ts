@@ -1,12 +1,17 @@
 export type {
   SemanticEntity,
   SemanticAction,
+  RegisterActionInput,
   CapabilityProfile,
   WorkflowDefinition,
   PolicyContext,
   PolicyDecision,
   PolicyRule,
   RuntimeEvent,
+  ActionExecutionContext,
+  SemanticActionHandler,
+  ExecuteActionOptions,
+  ExecuteActionResult,
 } from "./types.js";
 
 export {
@@ -25,6 +30,13 @@ export {
 
 export type { RegistrySnapshot } from "./registry.js";
 
+export type { SynqelSnapshotEnvelope } from "./snapshot.js";
+export {
+  createSnapshotEnvelope,
+  serializeSnapshotEnvelope,
+  synqelSnapshotJsonResponse,
+} from "./snapshot.js";
+
 export { evaluatePolicy } from "./policy.js";
 
 export {
@@ -42,6 +54,11 @@ import type {
   SemanticAction,
   CapabilityProfile,
   WorkflowDefinition,
+  RegisterActionInput,
+  PolicyContext,
+  SemanticActionHandler,
+  ExecuteActionOptions,
+  ExecuteActionResult,
 } from "./types.js";
 
 export function registerEntity(
@@ -50,9 +67,7 @@ export function registerEntity(
   return getSemanticRegistry().registerEntity(input);
 }
 
-export function registerAction(
-  input: Omit<SemanticAction, "deterministic"> & { deterministic?: boolean },
-): SemanticAction {
+export function registerAction(input: RegisterActionInput): SemanticAction {
   return getSemanticRegistry().registerAction(input);
 }
 
@@ -62,4 +77,21 @@ export function registerCapability(input: CapabilityProfile): CapabilityProfile 
 
 export function registerWorkflow(input: WorkflowDefinition): WorkflowDefinition {
   return getSemanticRegistry().registerWorkflow(input);
+}
+
+export function bindAction(actionId: string, handler: SemanticActionHandler): void {
+  getSemanticRegistry().bindAction(actionId, handler);
+}
+
+export function unbindAction(actionId: string): boolean {
+  return getSemanticRegistry().unbindAction(actionId);
+}
+
+export function executeAction(
+  actionId: string,
+  context: PolicyContext,
+  input?: unknown,
+  options?: ExecuteActionOptions,
+): Promise<ExecuteActionResult> {
+  return getSemanticRegistry().executeAction(actionId, context, input, options);
 }

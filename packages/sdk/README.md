@@ -1,71 +1,95 @@
 # @synqel/sdk
 
-> Semantic runtime SDK for the Synqel Protocol — the open standard for AI-navigable web applications.
+Semantic runtime for the **Synqel Protocol** — describe entities, actions, workflows, and policies so agents reason about your **UX**, not raw DOM.
+
+Synqel complements **[Model Context Protocol](https://modelcontextprotocol.io/)**: MCP connects hosts and tools; Synqel defines what your application **means** and **allows**. Use sibling package **`@synqel/mcp`** for stdio MCP servers.
 
 ## Install
 
 ```bash
-bun add @synqel/sdk
-# or
-npm install @synqel/sdk
+bun add @synqel/sdk zod
 ```
 
-## Usage
+Peers: **`zod`** required; **`react`** optional for `@synqel/sdk/react`.
+
+Runtime deps bundled with the SDK: **`zod-to-json-schema`** (action inputs → portable JSON Schema for snapshots/agents).
+
+## Core usage
 
 ```typescript
 import {
   registerEntity,
   registerAction,
-  registerCapability,
-  registerWorkflow,
+  bindAction,
   getSemanticRegistry,
+  serializeSnapshotEnvelope,
 } from "@synqel/sdk";
+import { z } from "zod";
 
 registerEntity({
-  id: "product_123",
+  id: "sku_42",
   type: "product",
-  metadata: { price: 299 },
+  metadata: { price: 99 },
 });
 
 registerAction({
   id: "add_to_cart",
   intent: "mutation",
-  deterministic: true,
+  inputSchema: z.object({ sku: z.string(), qty: z.number() }),
 });
 
-registerCapability({ canSearch: true, canCheckout: true });
-
-registerWorkflow({
-  id: "checkout_flow",
-  steps: ["add_to_cart", "confirm_order"],
+bindAction("add_to_cart", async (_ctx, input) => {
+  const payload = input as { sku: string; qty: number };
+  return { lineId: `${payload.sku}:${payload.qty}` };
 });
 
-const snapshot = getSemanticRegistry().getSnapshot();
+await getSemanticRegistry().executeAction(
+  "add_to_cart",
+  { actor: "human", roles: ["customer"] },
+  { sku: "sku_42", qty: 1 },
+);
+
+console.log(serializeSnapshotEnvelope(getSemanticRegistry()));
 ```
 
-## React Integration
+## HTTP snapshot route
 
 ```typescript
-import { useSemanticRuntime, useSemanticEvents } from "@synqel/sdk/react";
+import { synqelSnapshotJsonResponse, getSemanticRegistry } from "@synqel/sdk";
 
-function MyComponent() {
-  const { snapshot, executeAction } = useSemanticRuntime();
+export function GET() {
+  return synqelSnapshotJsonResponse(getSemanticRegistry());
+}
+```
 
-  useSemanticEvents((event) => {
-    console.log("Semantic event:", event);
-  });
+## React
+
+```typescript
+import { useSemanticRuntime } from "@synqel/sdk/react";
+
+function CartButton() {
+  const { executeAction } = useSemanticRuntime();
 
   return (
     <button
+      type="button"
       onClick={() =>
-        executeAction("add_to_cart", { actor: "human", roles: ["customer"] })
+        void executeAction(
+          "add_to_cart",
+          { actor: "human", roles: ["customer"] },
+          { sku: "sku_42", qty: 1 },
+        )
       }
     >
-      Add to Cart
+      Add
     </button>
   );
 }
 ```
+
+## Docs
+
+Spec + guides live in the main repo under `docs/` and on [synqel-protocol.vercel.app/docs](https://synqel-protocol.vercel.app/docs).
 
 ## License
 

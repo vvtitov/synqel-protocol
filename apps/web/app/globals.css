@@ -310,9 +310,10 @@ main :where(a, button):focus-visible {
   list-style: none;
 }
 
-/* Offset anchor targets so they don't hide under the sticky navbar */
+/* Offset anchor targets so they don't hide under the sticky navbar.
+   `--doc-scroll-margin` is measured in `Nav` (viewport px). */
 [id] {
-  scroll-margin-top: 5rem;
+  scroll-margin-top: var(--doc-scroll-margin, 4.5rem);
 }
 
 /* ── reduced-motion guards ── */

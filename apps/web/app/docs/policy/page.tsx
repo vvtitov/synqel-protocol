@@ -101,9 +101,12 @@ export default function PolicyPage() {
         style={{ color: "var(--color-text-secondary)" }}
       >
         The policy system provides deterministic, composable rules that gate
-        what an AI agent is allowed to execute. Every action attempt passes
-        through the policy chain before execution, and every decision is emitted
-        as a semantic event for auditing.
+        what each actor may execute.{" "}
+        <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>executeAction</code>{" "}
+        (UI, HTTP, or MCP via{" "}
+        <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>@synqel/mcp</code>) runs{" "}
+        <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>evaluatePolicy</code> before handlers;
+        decisions emit semantic events for auditing.
       </p>
 
       <section className="mt-12">

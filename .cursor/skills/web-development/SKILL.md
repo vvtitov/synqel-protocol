@@ -69,7 +69,7 @@ Example pattern for CSS variables:
 ## Adding a new docs page
 
 1. Create `apps/web/app/docs/<section>/page.tsx`
-2. Add the corresponding entry to the sidebar in `components/sidebar.tsx`
+2. Register routes and sidebar entries in `lib/docs-nav.ts` (`DOC_NAV_SECTIONS`, `DOC_SECTION_PAGES` if needed)
 3. Source content from `docs/<section>.md` (embed as strings or parse at build time)
 
 ## SDK code examples in docs
@@ -85,7 +85,7 @@ registerEntity({ id: "product_123", type: "product", metadata: {} });
 `}</CodeBlock>
 ```
 
-If you need to actually execute SDK code in the web app, add `"@synqel/sdk": "workspace:*"` to `apps/web/package.json` and run `bun install`. Ensure `packages/sdk` is built first.
+If you need to actually execute SDK code in the web app, add `"@synqel/sdk": "workspace:*"` to `apps/web/package.json` and run `bun install`. Ensure `packages/sdk` is built first (and `packages/mcp` if you import `@synqel/mcp`).
 
 ## Dev commands
 

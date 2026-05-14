@@ -30,33 +30,37 @@ registerWorkflow({
 });`;
 
 const ECOMMERCE_SNAPSHOT = `{
-  "entities": [
-    {
-      "id": "product_123",
-      "type": "product",
-      "metadata": {
-        "name": "Wireless Headphones",
-        "price": 299,
-        "currency": "USD"
+  "format": "synqel.snapshot.v1",
+  "registryVersion": 3,
+  "snapshot": {
+    "entities": [
+      {
+        "id": "product_123",
+        "type": "product",
+        "metadata": {
+          "name": "Wireless Headphones",
+          "price": 299,
+          "currency": "USD"
+        }
       }
-    }
-  ],
-  "actions": [
-    { "id": "add_to_cart", "intent": "mutation", "deterministic": true },
-    { "id": "view_details", "intent": "query", "deterministic": true },
-    { "id": "go_checkout", "intent": "navigation", "deterministic": true }
-  ],
-  "capabilities": {
-    "canSearch": true,
-    "canCheckout": true,
-    "canNavigate": true
-  },
-  "workflows": [
-    {
-      "id": "checkout_flow",
-      "steps": ["add_to_cart", "go_checkout", "confirm_order"]
-    }
-  ]
+    ],
+    "actions": [
+      { "id": "add_to_cart", "intent": "mutation", "deterministic": true },
+      { "id": "view_details", "intent": "query", "deterministic": true },
+      { "id": "go_checkout", "intent": "navigation", "deterministic": true }
+    ],
+    "capabilities": {
+      "canSearch": true,
+      "canCheckout": true,
+      "canNavigate": true
+    },
+    "workflows": [
+      {
+        "id": "checkout_flow",
+        "steps": ["add_to_cart", "go_checkout", "confirm_order"]
+      }
+    ]
+  }
 }`;
 
 const ECOMMERCE_REACT = `import { useSemanticRuntime } from "@synqel/sdk/react";
@@ -71,8 +75,9 @@ function ProductPage() {
       <h1>{product?.metadata.name as string}</h1>
       <p>\${product?.metadata.price as number}</p>
       <button
+        type="button"
         onClick={() =>
-          executeAction("add_to_cart", { actor: "human", roles: ["customer"] })
+          void executeAction("add_to_cart", { actor: "human", roles: ["customer"] })
         }
       >
         Add to Cart
@@ -186,9 +191,10 @@ function Dashboard() {
     <nav>
       {sections.map((section) => (
         <button
+          type="button"
           key={section.id}
           onClick={() =>
-            executeAction("navigate_to", { actor: "human", roles: ["viewer"] })
+            void executeAction("navigate_to", { actor: "human", roles: ["viewer"] })
           }
         >
           {section.metadata.label as string}
@@ -197,6 +203,39 @@ function Dashboard() {
     </nav>
   );
 }`;
+
+const HTTP_SNAPSHOT_CODE = `import { synqelSnapshotJsonResponse, getSemanticRegistry } from "@synqel/sdk";
+
+export function GET() {
+  return synqelSnapshotJsonResponse(getSemanticRegistry());
+}`;
+
+const AGENTS_MCP_CODE = `import {
+  registerAction,
+  bindAction,
+  getSemanticRegistry,
+} from "@synqel/sdk";
+import { z } from "zod";
+import { connectSynqelMcpStdio } from "@synqel/mcp";
+
+registerAction({
+  id: "submit_checkout",
+  intent: "mutation",
+  inputSchema: z.object({ cartId: z.string() }),
+});
+
+bindAction("submit_checkout", async (_ctx, input) => {
+  const { cartId } = input as { cartId: string };
+  return { paid: true, cartId };
+});
+
+async function main() {
+  await connectSynqelMcpStdio(getSemanticRegistry(), {
+    defaultPolicyContext: { actor: "agent", roles: ["admin"] },
+  });
+}
+
+void main();`;
 
 export default function ExamplesPage() {
   return (
@@ -211,8 +250,8 @@ export default function ExamplesPage() {
         className="mt-4 text-lg leading-relaxed"
         style={{ color: "var(--color-text-secondary)" }}
       >
-        Complete, copy-pasteable integration examples showing Synqel Protocol
-        in real-world scenarios.
+        Patterns for registering semantic surfaces, wiring React, exposing HTTP snapshots,
+        and bridging MCP hosts — Synqel stays the contract; transport is your choice.
       </p>
 
       {/* E-commerce */}
@@ -233,7 +272,7 @@ export default function ExamplesPage() {
         </p>
         <div className="mt-4 flex flex-col gap-4">
           <CodeBlock code={ECOMMERCE_CODE} language="typescript" title="Registration" />
-          <CodeBlock code={ECOMMERCE_SNAPSHOT} language="json" title="What the AI agent receives" />
+          <CodeBlock code={ECOMMERCE_SNAPSHOT} language="json" title="Envelope the AI agent receives" />
           <CodeBlock code={ECOMMERCE_REACT} language="typescript" title="React component" />
         </div>
       </section>
@@ -280,6 +319,29 @@ export default function ExamplesPage() {
           <CodeBlock code={DASHBOARD_CODE} language="typescript" title="Registration" />
           <CodeBlock code={DASHBOARD_AI_EXAMPLE} language="typescript" title="AI agent interaction" />
           <CodeBlock code={DASHBOARD_REACT} language="typescript" title="React component" />
+        </div>
+      </section>
+
+      <section id="agents-mcp" className="mt-12">
+        <h2
+          className="text-2xl font-semibold"
+          style={{ color: "var(--color-text-primary)" }}
+        >
+          Agents, HTTP, and MCP
+        </h2>
+        <p
+          className="mt-3 text-sm leading-relaxed"
+          style={{ color: "var(--color-text-secondary)" }}
+        >
+          Same registry: serve JSON over HTTP for remote agents, or run{" "}
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>@synqel/mcp</code>{" "}
+          so Claude Desktop / Cursor get{" "}
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>synqel_get_snapshot</code> and{" "}
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>synqel_execute_action</code>.
+        </p>
+        <div className="mt-4 flex flex-col gap-4">
+          <CodeBlock code={HTTP_SNAPSHOT_CODE} language="typescript" title="Next.js route — snapshot envelope" />
+          <CodeBlock code={AGENTS_MCP_CODE} language="typescript" title="MCP stdio bridge (sketch)" />
         </div>
       </section>
     </article>

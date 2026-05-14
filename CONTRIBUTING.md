@@ -11,8 +11,8 @@ Synqel Protocol is a versioned open standard. Changes to the protocol follow a s
 New event kinds, new optional metadata fields, and new capability flags can be added through a standard pull request. These changes must:
 
 - Be backward compatible
-- Include updates to the event taxonomy in `src/event-taxonomy.ts`
-- Include corresponding Zod schema updates in `src/types.ts`
+- Include updates to the event taxonomy in `packages/sdk/src/event-taxonomy.ts`
+- Include corresponding Zod schema updates in `packages/sdk/src/types.ts`
 - Include documentation updates in `docs/`
 - Include unit tests
 
@@ -28,9 +28,9 @@ Breaking changes to the protocol (removing fields, changing type shapes, renamin
 
 ## Adding New Event Kinds
 
-1. Add the event kind string to `EVENT_KINDS` in `src/event-taxonomy.ts`
+1. Add the event kind string to `EVENT_KINDS` in `packages/sdk/src/event-taxonomy.ts`
 2. Add the corresponding category to `EVENT_CATEGORIES` if it is new
-3. Update the `RuntimeEvent` union in `src/types.ts`
+3. Update the `RuntimeEvent` union in `packages/sdk/src/types.ts`
 4. Add tests in `__tests__/event-taxonomy.test.ts`
 5. Document the new event in `docs/events.md`
 
@@ -66,10 +66,22 @@ bun run typecheck
 bun run dev
 ```
 
+### Publishing `@synqel/sdk`
+
+The SDK is published to **npm** (public) and **GitHub Packages** (mirror).
+
+- **`@synqel/mcp`** should be published with the same scope/process when you cut releases (build depends on the SDK being published or linked via workspace).
+
+- **npm:** from `packages/sdk`, with npm configured for [registry.npmjs.org](https://registry.npmjs.org), run `npm publish` after bumping `version` (or use your usual release process). `prepublishOnly` runs tests and build.
+- **GitHub Packages:** publishing is automated in [`.github/workflows/publish-sdk-github-packages.yml`](./.github/workflows/publish-sdk-github-packages.yml). Creating a **GitHub Release** runs the workflow, or you can start it manually under **Actions**.
+- **Scope vs repo owner:** GitHub’s npm registry expects the package scope to match a GitHub **user or organization** name. For `@synqel/sdk`, the account **`synqel`** on GitHub must own the package. If this repository is under another owner (for example a personal account), add a repository secret **`GH_PACKAGES_PUBLISH_TOKEN`**: a classic PAT or fine-grained token with `write:packages` for the **`synqel`** org (or whichever GitHub owner matches `@synqel`). If the secret is absent, the workflow uses `GITHUB_TOKEN`, which only works when the repository owner matches the npm scope.
+- After the first successful publish, link or confirm the package under the repository’s **Packages** tab and set visibility to **public** if you want unauthenticated installs from GitHub.
+
 ### Rules for SDK contributions
 
 - **Tests required**: every new export must have corresponding unit tests
-- **No new runtime dependencies**: the SDK must remain zero-dependency (except `zod`)
+- **Keep runtime dependencies minimal**: `@synqel/sdk` ships **`zod`** (peer) plus **`zod-to-json-schema`** for JSON Schema export; do not add transitive-heavy stacks without discussion.
+- **`@synqel/mcp`** may depend on `@modelcontextprotocol/sdk` — keep that boundary (transport only).
 - **No `any` types**: every export must be fully typed
 - **Strict mode**: TypeScript strict mode is enforced
 - **Universal runtime**: code must work in browsers, Node.js, and Bun
@@ -115,6 +127,7 @@ This project follows [Conventional Commits](https://www.conventionalcommits.org/
 |-------|----------------|
 | `protocol` | Changes to the protocol specification |
 | `sdk` | Changes to `@synqel/sdk` |
+| `mcp` | Changes to `@synqel/mcp` |
 | `web` | Changes to the docs/marketing website |
 | `repo` | Repository-level changes (CI, config, etc.) |
 
@@ -136,7 +149,7 @@ Before submitting a PR, confirm that:
 - [ ] Type checking passes (`bun run typecheck`)
 - [ ] Documentation is updated if the public API changed
 - [ ] Commit messages follow the conventional commits format
-- [ ] No new runtime dependencies were added to the SDK
+- [ ] New `@synqel/sdk` runtime dependencies are justified (prefer staying lean: `zod` + `zod-to-json-schema`)
 - [ ] No `any` types were introduced
 
 ## Code of Conduct

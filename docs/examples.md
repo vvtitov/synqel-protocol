@@ -104,3 +104,61 @@ registerCapability({ canNavigate: true });
 ```
 
 When a user says *"Take me to analytics"*, the AI agent reads the snapshot, finds the matching section entity, and executes the navigation action. Policy evaluation allows navigation for all actor types.
+
+## Checkout with parameters, handlers, and MCP
+
+Use Zod **`inputSchema`** so agents see **`inputJsonSchema`**, bind a real handler, and optionally expose the same registry over MCP:
+
+```typescript
+import {
+  registerEntity,
+  registerAction,
+  bindAction,
+  registerWorkflow,
+  getSemanticRegistry,
+} from "@synqel/sdk";
+import { z } from "zod";
+import { connectSynqelMcpStdio } from "@synqel/mcp";
+
+registerEntity({
+  id: "checkout_cart",
+  type: "cart",
+  metadata: { currency: "USD" },
+});
+
+registerAction({
+  id: "submit_checkout",
+  intent: "mutation",
+  inputSchema: z.object({
+    cartId: z.string(),
+  }),
+});
+
+bindAction("submit_checkout", async (_ctx, input) => {
+  const { cartId } = input as { cartId: string };
+  return { paid: true, cartId };
+});
+
+registerWorkflow({
+  id: "checkout_flow",
+  steps: ["submit_checkout"],
+});
+
+async function startMcpBridge() {
+  await connectSynqelMcpStdio(getSemanticRegistry(), {
+    defaultPolicyContext: { actor: "agent", roles: ["admin"] },
+  });
+}
+
+void startMcpBridge();
+```
+
+REST-style exposure without MCP:
+
+```typescript
+import { synqelSnapshotJsonResponse, getSemanticRegistry } from "@synqel/sdk";
+
+export function GET() {
+  return synqelSnapshotJsonResponse(getSemanticRegistry());
+}
+```

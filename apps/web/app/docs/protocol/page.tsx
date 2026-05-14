@@ -16,12 +16,17 @@ const ACTION_SCHEMA = `const actionSchema = z.object({
   id: z.string().min(1),
   intent: z.enum(["navigation", "mutation", "query", "system"]),
   deterministic: z.boolean().default(true),
+  description: z.string().optional(),
+  inputJsonSchema: z.record(z.string(), z.unknown()).optional(),
 });
 
 type SemanticAction = {
   id: string;
   intent: "navigation" | "mutation" | "query" | "system";
   deterministic: boolean;
+  description?: string;
+  /** JSON Schema for action parameters — portable for agents & MCP. */
+  inputJsonSchema?: Record<string, unknown>;
 };`;
 
 const CAPABILITY_SCHEMA = `const capabilitySchema = z.object({
@@ -53,25 +58,47 @@ const SNAPSHOT_EXAMPLE = `type RegistrySnapshot = {
   workflows: WorkflowDefinition[];
 };
 
-// Example snapshot an AI agent receives:
-{
-  "entities": [
-    { "id": "product_123", "type": "product", "metadata": { "price": 299 } },
-    { "id": "cart", "type": "container", "metadata": { "itemCount": 2 } }
-  ],
-  "actions": [
-    { "id": "add_to_cart", "intent": "mutation", "deterministic": true },
-    { "id": "search_products", "intent": "query", "deterministic": true },
-    { "id": "go_checkout", "intent": "navigation", "deterministic": true }
-  ],
-  "capabilities": {
-    "canSearch": true,
-    "canCheckout": true,
-    "canNavigate": true
-  },
-  "workflows": [
-    { "id": "checkout_flow", "steps": ["add_to_cart", "go_checkout", "confirm_order"] }
-  ]
+// Inner payload agents consume (also embedded in the transport envelope below)
+
+type SynqelSnapshotEnvelope = {
+  format: "synqel.snapshot.v1";
+  registryVersion: number;
+  snapshot: RegistrySnapshot;
+};`;
+
+const SNAPSHOT_JSON_EXAMPLE = `{
+  "format": "synqel.snapshot.v1",
+  "registryVersion": 4,
+  "snapshot": {
+    "entities": [
+      { "id": "product_123", "type": "product", "metadata": { "price": 299 } },
+      { "id": "cart", "type": "container", "metadata": { "itemCount": 2 } }
+    ],
+    "actions": [
+      {
+        "id": "add_to_cart",
+        "intent": "mutation",
+        "deterministic": true,
+        "inputJsonSchema": {
+          "type": "object",
+          "properties": {
+            "sku": { "type": "string" },
+            "qty": { "type": "number" }
+          }
+        }
+      },
+      { "id": "search_products", "intent": "query", "deterministic": true },
+      { "id": "go_checkout", "intent": "navigation", "deterministic": true }
+    ],
+    "capabilities": {
+      "canSearch": true,
+      "canCheckout": true,
+      "canNavigate": true
+    },
+    "workflows": [
+      { "id": "checkout_flow", "steps": ["add_to_cart", "go_checkout", "confirm_order"] }
+    ]
+  }
 }`;
 
 const INTENT_TABLE = [
@@ -115,8 +142,13 @@ export default function ProtocolPage() {
         style={{ color: "var(--color-text-secondary)" }}
       >
         The Synqel Protocol defines a formal, versioned schema for how web
-        applications describe themselves to AI agents. This page is the
-        canonical reference for every protocol primitive.
+        applications describe themselves to AI agents.{" "}
+        <strong style={{ color: "var(--color-text-primary)", fontWeight: 600 }}>
+          Synqel is not an MCP replacement
+        </strong>
+        — it describes meaning and governance; optional packages such as{" "}
+        <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>@synqel/mcp</code>{" "}
+        expose that surface over Model Context Protocol when you need stdio tools.
       </p>
 
       {/* Entities */}
@@ -166,8 +198,13 @@ export default function ProtocolPage() {
           A <strong>SemanticAction</strong> represents something that can be
           done within your application. Every action has a unique{" "}
           <code style={{ color: "var(--color-accent)", fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>id</code>, an{" "}
-          <code style={{ color: "var(--color-accent)", fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>intent</code> class, and a{" "}
-          <code style={{ color: "var(--color-accent)", fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>deterministic</code> flag.
+          <code style={{ color: "var(--color-accent)", fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>intent</code> class, a{" "}
+          <code style={{ color: "var(--color-accent)", fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>deterministic</code> flag,
+          optional human-readable <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>description</code>, and
+          optional <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>inputJsonSchema</code>{" "}
+          so agents know which parameters to send. When using the reference SDK, you may supply a Zod{" "}
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>inputSchema</code> at registration time —
+          it populates <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>inputJsonSchema</code> and validates payloads during execution.
         </p>
         <div className="mt-4">
           <CodeBlock code={ACTION_SCHEMA} language="typescript" title="Action schema & type" />
@@ -279,7 +316,7 @@ export default function ProtocolPage() {
       </section>
 
       {/* Registry Snapshot */}
-      <section className="mt-12">
+      <section id="registry-snapshot" className="mt-12">
         <h2
           className="text-2xl font-semibold"
           style={{ color: "var(--color-text-primary)" }}
@@ -291,12 +328,13 @@ export default function ProtocolPage() {
           style={{ color: "var(--color-text-secondary)" }}
         >
           The registry snapshot is the complete semantic surface of your
-          application at any point in time. This is what an AI agent reads
-          instead of parsing raw HTML. It contains all registered entities,
-          actions, capabilities, and workflows in a single structured object.
+          application at any point in time. For HTTP, MCP, or logs, wrap it in the{" "}
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>synqel.snapshot.v1</code> envelope so consumers also receive a{" "}
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>registryVersion</code> counter.
         </p>
-        <div className="mt-4">
-          <CodeBlock code={SNAPSHOT_EXAMPLE} language="typescript" title="RegistrySnapshot type & example" />
+        <div className="mt-4 flex flex-col gap-4">
+          <CodeBlock code={SNAPSHOT_EXAMPLE} language="typescript" title="Types" />
+          <CodeBlock code={SNAPSHOT_JSON_EXAMPLE} language="json" title="Example envelope JSON" />
         </div>
       </section>
 

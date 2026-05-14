@@ -32,17 +32,17 @@ export default function EventsPage() {
       events: [
         {
           kind: "semantic.action.attempt",
-          fires: "When an action execution is attempted (before policy evaluation)",
-          payload: "{ type: \"action:attempt\"; actionId: string; context: PolicyContext }",
+          fires: "When executeAction begins (before policy evaluation)",
+          payload: "{ type: \"action:attempt\"; actionId: string; context: PolicyContext; sessionId?: string }",
         },
         {
           kind: "semantic.action.result",
-          fires: "After policy evaluation — whether the action succeeded or was denied",
-          payload: "{ type: \"action:result\"; actionId: string; ok: boolean; message?: string }",
+          fires: "When an execution attempt completes (policy denial, validation error, handler result, or thrown error)",
+          payload: "{ type: \"action:result\"; actionId: string; ok: boolean; message?: string; data?: unknown }",
         },
         {
           kind: "semantic.action.executed",
-          fires: "When an action passes policy and executes successfully",
+          fires: "After policy passes, validation succeeds, and the bound handler completes without throwing",
           payload: "{ type: \"action:executed\"; actionId: string }",
         },
       ],
@@ -79,12 +79,12 @@ export default function EventsPage() {
       events: [
         {
           kind: "semantic.session.started",
-          fires: "When an AI agent session begins",
+          fires: "When SemanticRegistry.startSession() runs (or your host emits the same)",
           payload: "{ type: \"session:started\"; sessionId: string }",
         },
         {
           kind: "semantic.session.ended",
-          fires: "When an AI agent session ends",
+          fires: "When SemanticRegistry.endSession(sessionId) runs",
           payload: "{ type: \"session:ended\"; sessionId: string }",
         },
         {

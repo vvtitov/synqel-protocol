@@ -1,17 +1,18 @@
 import { CodeBlock } from "@/components/code-block";
 
-const INSTALL_CODE = `bun add @synqel/sdk
-# or
-npm install @synqel/sdk`;
+const INSTALL_CODE = `bun add @synqel/sdk zod
+# optional — MCP stdio bridge for Claude Desktop, Cursor, …
+bun add @synqel/mcp`;
 
 const QUICK_START_CODE = `import {
   registerEntity,
   registerAction,
+  bindAction,
   registerWorkflow,
 } from "@synqel/sdk";
+import { z } from "zod";
 import { useSemanticRuntime } from "@synqel/sdk/react";
 
-// 1. Register your app's semantic surface
 registerEntity({
   id: "checkout_form",
   type: "form",
@@ -22,6 +23,14 @@ registerAction({
   id: "submit_checkout",
   intent: "mutation",
   deterministic: true,
+  inputSchema: z.object({
+    orderId: z.string(),
+  }),
+});
+
+bindAction("submit_checkout", async (_ctx, input) => {
+  const data = input as { orderId: string };
+  return { confirmed: true, orderId: data.orderId };
 });
 
 registerWorkflow({
@@ -29,20 +38,18 @@ registerWorkflow({
   steps: ["fill_shipping", "fill_payment", "submit_checkout"],
 });
 
-// 2. In your React component — read the snapshot the AI sees
 function CheckoutPage() {
-  const { snapshot, executeAction } = useSemanticRuntime();
-
-  // snapshot.entities, snapshot.actions, snapshot.workflows
-  // are exactly what an AI agent reads
+  const { executeAction } = useSemanticRuntime();
 
   return (
     <button
+      type="button"
       onClick={() =>
-        executeAction("submit_checkout", {
-          actor: "human",
-          roles: ["customer"],
-        })
+        void executeAction(
+          "submit_checkout",
+          { actor: "human", roles: ["customer"] },
+          { orderId: "ord_123" },
+        )
       }
     >
       Complete Purchase
@@ -51,27 +58,37 @@ function CheckoutPage() {
 }`;
 
 const SNAPSHOT_CODE = `{
-  "entities": [
-    {
-      "id": "checkout_form",
-      "type": "form",
-      "metadata": { "purpose": "complete_purchase" }
-    }
-  ],
-  "actions": [
-    {
-      "id": "submit_checkout",
-      "intent": "mutation",
-      "deterministic": true
-    }
-  ],
-  "capabilities": {},
-  "workflows": [
-    {
-      "id": "checkout_flow",
-      "steps": ["fill_shipping", "fill_payment", "submit_checkout"]
-    }
-  ]
+  "format": "synqel.snapshot.v1",
+  "registryVersion": 5,
+  "snapshot": {
+    "entities": [
+      {
+        "id": "checkout_form",
+        "type": "form",
+        "metadata": { "purpose": "complete_purchase" }
+      }
+    ],
+    "actions": [
+      {
+        "id": "submit_checkout",
+        "intent": "mutation",
+        "deterministic": true,
+        "inputJsonSchema": {
+          "type": "object",
+          "properties": {
+            "orderId": { "type": "string" }
+          }
+        }
+      }
+    ],
+    "capabilities": {},
+    "workflows": [
+      {
+        "id": "checkout_flow",
+        "steps": ["fill_shipping", "fill_payment", "submit_checkout"]
+      }
+    ]
+  }
 }`;
 
 export default function DocsPage() {
@@ -87,10 +104,23 @@ export default function DocsPage() {
         className="mt-4 text-lg leading-relaxed"
         style={{ color: "var(--color-text-secondary)" }}
       >
-        Synqel Protocol is an open standard that defines how a web application
-        describes itself to an AI agent. The SDK provides a lightweight
-        TypeScript implementation with Zod validation, a pub/sub event bus, and
-        an optional React integration.
+        Synqel defines how your application describes itself to AI agents: entities,
+        actions (with optional JSON Schema inputs), workflows, policy, and events.
+        It complements{" "}
+        <a
+          href="https://modelcontextprotocol.io/"
+          className="underline"
+          style={{ color: "var(--color-accent)" }}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          MCP
+        </a>
+        — Synqel is the semantic contract;{" "}
+        <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>
+          @synqel/mcp
+        </code>{" "}
+        exposes that contract as standard tools when you want stdio MCP hosts.
       </p>
 
       <section id="installation" className="mt-12">
@@ -104,10 +134,13 @@ export default function DocsPage() {
           className="mt-3 text-sm leading-relaxed"
           style={{ color: "var(--color-text-secondary)" }}
         >
-          The SDK requires <code style={{ color: "var(--color-accent)", fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>zod</code> as
-          a peer dependency. React is optional — only needed if you use the{" "}
-          <code style={{ color: "var(--color-accent)", fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>@synqel/sdk/react</code> entry
-          point.
+          The SDK requires{" "}
+          <code style={{ color: "var(--color-accent)", fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>zod</code>{" "}
+          as a peer dependency and bundles{" "}
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>zod-to-json-schema</code>{" "}
+          so optional Zod inputs become portable JSON Schema in the snapshot.
+          React is optional — only if you use{" "}
+          <code style={{ color: "var(--color-accent)", fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>@synqel/sdk/react</code>.
         </p>
         <div className="mt-4">
           <CodeBlock code={INSTALL_CODE} language="bash" title="Install" />
@@ -125,9 +158,9 @@ export default function DocsPage() {
           className="mt-3 text-sm leading-relaxed"
           style={{ color: "var(--color-text-secondary)" }}
         >
-          Register your application&apos;s entities, actions, and workflows.
-          These declarations form the semantic surface that AI agents read
-          instead of parsing raw HTML.
+          Register entities and actions, attach Zod input schemas when agents need
+          structured parameters, bind handlers for real execution, and expose the
+          same snapshot everywhere — UI, HTTP, or MCP.
         </p>
         <div className="mt-4">
           <CodeBlock
@@ -149,14 +182,17 @@ export default function DocsPage() {
           className="mt-3 text-sm leading-relaxed"
           style={{ color: "var(--color-text-secondary)" }}
         >
-          After registration, the registry produces a structured snapshot. This
-          is the contract between your application and any AI agent:
+          For transport and caching, serialize the registry with the stable{" "}
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>synqel.snapshot.v1</code>{" "}
+          envelope (includes <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>registryVersion</code>
+          {" "}for staleness). Agents consume the inner{" "}
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>snapshot</code> object.
         </p>
         <div className="mt-4">
           <CodeBlock
             code={SNAPSHOT_CODE}
             language="json"
-            title="Registry snapshot"
+            title="Snapshot envelope"
           />
         </div>
       </section>
@@ -178,27 +214,32 @@ export default function DocsPage() {
             {
               term: "Action",
               description:
-                "Something that can be done — add to cart, navigate, search. Each action carries an intent class (navigation, mutation, query, system) and a deterministic flag.",
+                "Something that can be done — add to cart, navigate, search. Each action has intent class (navigation, mutation, query, system), deterministic flag, and optional inputJsonSchema for agent payloads (often derived from Zod at registration).",
+            },
+            {
+              term: "Handler",
+              description:
+                "TypeScript code bound with bindAction — runs after policy and optional input validation when executeAction succeeds.",
             },
             {
               term: "Capability",
               description:
-                "A top-level declaration of what your application can do: canSearch, canCheckout, canNavigate.",
+                "Top-level flags: canSearch, canCheckout, canNavigate — merged incrementally.",
             },
             {
               term: "Workflow",
               description:
-                "An ordered sequence of action steps. Workflows give AI agents a named path through your application.",
+                "Ordered action IDs forming a named path through your application.",
             },
             {
               term: "Event",
               description:
-                "Everything that happens is captured as a typed runtime event across six categories: entity, action, workflow, session, intent, and policy.",
+                "Typed runtime events across entity, action, workflow, session, intent, and policy — full observability surface.",
             },
             {
               term: "Policy",
               description:
-                "Deterministic rules that gate what an AI agent is allowed to execute. Composable, explicit, auditable.",
+                "Composable rules that gate what each actor (human, agent, voice) may execute.",
             },
           ].map((concept) => (
             <div
@@ -238,25 +279,25 @@ export default function DocsPage() {
             <a href="/docs/protocol" className="underline" style={{ color: "var(--color-accent)" }}>
               Protocol Specification
             </a>{" "}
-            — full formal definition of entities, actions, capabilities, and workflows.
+            — formal primitives, snapshot envelope, versioning.
           </li>
           <li>
             <a href="/docs/sdk" className="underline" style={{ color: "var(--color-accent)" }}>
               SDK Reference
             </a>{" "}
-            — API documentation for every exported function and class.
+            — bindAction, executeAction, HTTP helpers, MCP adapter notes.
           </li>
           <li>
             <a href="/docs/events" className="underline" style={{ color: "var(--color-accent)" }}>
               Event Taxonomy
             </a>{" "}
-            — all 20 event kinds across 6 categories.
+            — event kinds across six categories.
           </li>
           <li>
-            <a href="/docs/examples" className="underline" style={{ color: "var(--color-accent)" }}>
-              Examples
+            <a href="/docs/examples#agents-mcp" className="underline" style={{ color: "var(--color-accent)" }}>
+              Agents &amp; MCP
             </a>{" "}
-            — complete, copy-pasteable integration examples.
+            — checkout pattern with optional MCP bridge.
           </li>
         </ul>
       </section>

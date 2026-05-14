@@ -34,11 +34,16 @@ A **SemanticAction** represents something that can be done within your applicati
 
 ```typescript
 type SemanticAction = {
-  id: string;                                          // unique identifier
-  intent: "navigation" | "mutation" | "query" | "system";  // intent class
-  deterministic: boolean;                              // defaults to true
+  id: string;
+  intent: "navigation" | "mutation" | "query" | "system";
+  deterministic: boolean; // defaults to true
+  description?: string;
+  /** JSON Schema for parameters this action accepts (for agents, MCP, docs). */
+  inputJsonSchema?: Record<string, unknown>;
 };
 ```
+
+When using `@synqel/sdk`, you may pass an optional Zod **`inputSchema`** alongside `registerAction`. The SDK derives **`inputJsonSchema`** automatically and validates payloads during `executeAction`.
 
 ### Intent classes
 
@@ -93,7 +98,17 @@ type RegistrySnapshot = {
 };
 ```
 
-This is what an AI agent receives — clean, structured, purposeful. No DOM nodes. No CSS selectors. Just meaning.
+For transport (HTTP, MCP, logs), prefer the versioned envelope produced by `createSnapshotEnvelope()` / `serializeSnapshotEnvelope()` — see the SDK reference.
+
+```typescript
+type SynqelSnapshotEnvelope = {
+  format: "synqel.snapshot.v1";
+  registryVersion: number;
+  snapshot: RegistrySnapshot;
+};
+```
+
+This envelope keeps **`registryVersion`** (mutation counter) next to the payload so remote agents can detect staleness. The inner snapshot remains free of DOM or visual noise — strictly semantic facts.
 
 ## Versioning
 

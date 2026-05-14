@@ -3,8 +3,12 @@
 import { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
 import { getSemanticRegistry } from "./registry.js";
 import type { RegistrySnapshot } from "./registry.js";
-import type { PolicyContext, RuntimeEvent } from "./types.js";
-import { evaluatePolicy } from "./policy.js";
+import type {
+  PolicyContext,
+  RuntimeEvent,
+  ExecuteActionOptions,
+  ExecuteActionResult,
+} from "./types.js";
 
 export function useSemanticRuntime() {
   const registry = getSemanticRegistry();
@@ -16,47 +20,20 @@ export function useSemanticRuntime() {
     [registry],
   );
 
-  const getSnapshot = useCallback((): RegistrySnapshot => {
+  const getSnapshotData = useCallback((): RegistrySnapshot => {
     return registry.getSnapshot();
   }, [registry]);
 
-  const snapshot = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  const snapshot = useSyncExternalStore(subscribe, getSnapshotData, getSnapshotData);
 
   const executeAction = useCallback(
-    (actionId: string, context: PolicyContext) => {
-      const action = registry.getAction(actionId);
-      if (!action) {
-        registry.bus.emit({
-          type: "action:result",
-          actionId,
-          ok: false,
-          message: `Action "${actionId}" not found in registry.`,
-        });
-        return;
-      }
-
-      registry.bus.emit({ type: "action:attempt", actionId, context });
-
-      const decision = evaluatePolicy(context, action);
-      registry.bus.emit({ type: "policy:evaluated", actionId, decision });
-
-      if (!decision.allowed) {
-        registry.bus.emit({
-          type: "policy:denied",
-          actionId,
-          reason: decision.reason,
-        });
-        registry.bus.emit({
-          type: "action:result",
-          actionId,
-          ok: false,
-          message: decision.reason,
-        });
-        return;
-      }
-
-      registry.bus.emit({ type: "action:executed", actionId });
-      registry.bus.emit({ type: "action:result", actionId, ok: true });
+    (
+      actionId: string,
+      context: PolicyContext,
+      input?: unknown,
+      options?: ExecuteActionOptions,
+    ): Promise<ExecuteActionResult> => {
+      return registry.executeAction(actionId, context, input, options);
     },
     [registry],
   );

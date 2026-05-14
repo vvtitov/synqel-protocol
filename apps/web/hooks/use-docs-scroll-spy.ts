@@ -6,31 +6,41 @@ import {
   getDocsScrollSpyTargets,
   type DocsScrollSpyTarget,
 } from "@/lib/docs-nav";
+import { getDocScrollAnchorOffsetPx } from "@/lib/docs-scroll-offset";
 
-/** Viewport offset from top (sticky header + padding). Aligns with ~5rem scroll-margin on headings. */
-const HEADER_OFFSET_PX = 88;
+/** Subpixel/layout tolerance vs sticky header measurement */
+const EDGE_EPS_PX = 1;
 
 function computeActiveHref(targets: DocsScrollSpyTarget[]): string | null {
   if (typeof document === "undefined" || targets.length === 0) return null;
 
-  const firstKeyed = targets.find((t) => t.id !== null);
-  if (!firstKeyed?.id) {
+  const cutoff = getDocScrollAnchorOffsetPx() + EDGE_EPS_PX;
+
+  const keyed = targets.filter(
+    (t): t is DocsScrollSpyTarget & { id: string } => t.id !== null,
+  );
+
+  if (keyed.length === 0) {
     return targets[0]?.href ?? null;
   }
 
   let active = targets[0]?.href ?? null;
 
-  for (const item of targets) {
-    if (item.id === null) continue;
+  for (const item of keyed) {
     const el = document.getElementById(item.id);
     if (!el) continue;
-    if (el.getBoundingClientRect().top <= HEADER_OFFSET_PX) {
+    if (el.getBoundingClientRect().top <= cutoff) {
       active = item.href;
     }
   }
 
-  const firstEl = document.getElementById(firstKeyed.id);
-  if (firstEl && firstEl.getBoundingClientRect().top > HEADER_OFFSET_PX) {
+  const firstKeyed = keyed[0];
+  const firstEl = document.getElementById(firstKeyed?.id ?? "");
+  if (
+    firstKeyed &&
+    firstEl &&
+    firstEl.getBoundingClientRect().top > cutoff
+  ) {
     active = targets[0]?.href ?? null;
   }
 
@@ -72,10 +82,18 @@ export function useDocsScrollSpyActiveHref(): string | null {
       });
     };
 
+    /** `hashchange` / `popstate` */
+    const onHashAnchor = () => schedule();
+
     apply();
 
     window.addEventListener("scroll", schedule, { passive: true });
     window.addEventListener("resize", schedule);
+    window.addEventListener("hashchange", onHashAnchor);
+    window.addEventListener("popstate", onHashAnchor);
+    window.addEventListener("synqel:doc-scroll-anchor", schedule);
+    /** Final highlight after inertia / smooth-scroll (Chromium baseline; ignores unsupported browsers). */
+    window.addEventListener("scrollend", schedule);
 
     const main = document.getElementById("main-content");
     const ro = main ? new ResizeObserver(schedule) : null;
@@ -84,10 +102,14 @@ export function useDocsScrollSpyActiveHref(): string | null {
     return () => {
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
+      window.removeEventListener("hashchange", onHashAnchor);
+      window.removeEventListener("popstate", onHashAnchor);
+      window.removeEventListener("synqel:doc-scroll-anchor", schedule);
+      window.removeEventListener("scrollend", schedule);
       ro?.disconnect();
       if (frame) cancelAnimationFrame(frame);
     };
-  }, [targets]);
+  }, [targets, pathname]);
 
   return activeHref;
 }
