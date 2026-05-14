@@ -7,6 +7,10 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue.svg)](https://www.typescriptlang.org/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
 
+**Website:** [synqel-protocol.vercel.app](https://synqel-protocol.vercel.app/) · **Documentation (hosted):** [synqel-protocol.vercel.app/docs](https://synqel-protocol.vercel.app/docs)
+
+This repository is where the **protocol**, the **reference SDK**, and the **public documentation site** live together. If you are integrating Synqel into a product, you mostly care about `@synqel/sdk`. If you are helping evolve the standard, everything you need is here — specs in `docs/`, implementation in `packages/sdk/`, and the site in `apps/web/`.
+
 ## What is it?
 
 Synqel Protocol is a formal, versioned open standard that defines how a web application describes itself to an AI agent. It is not HTML (visual structure) and not REST (data endpoints). It defines **semantic facts**: what objects exist, what can be done, what the application is capable of, and what policy gates must be satisfied before an action executes.
@@ -21,12 +25,35 @@ Today, AI agents that need to navigate a web application see raw HTML — visual
 
 Screen readers faced this exact same problem and the web solved it with ARIA. **Synqel Protocol is to AI agents what ARIA is to screen readers.** It gives your application a clean semantic surface that any agent can read, reason about, and act on — without touching the DOM.
 
-## Install
+## Install the SDK
+
+We publish `@synqel/sdk` to the npm registry, but **we recommend installing it with Bun or pnpm**. They tend to give faster, more reproducible installs and a simpler story for lockfile review. The JavaScript ecosystem has seen repeated **supply-chain incidents** (typosquatting, leaked tokens, compromised maintainer accounts). No package manager is risk-free; we simply prefer Bun/pnpm day to day and do not document `npm install` as the default path.
 
 ```bash
 bun add @synqel/sdk
-# or
-npm install @synqel/sdk
+```
+
+```bash
+pnpm add @synqel/sdk
+```
+
+Peers: you need **`zod`**; for `import "@synqel/sdk/react"` you need **React 18+**.
+
+## Local development (this monorepo)
+
+```bash
+bun install
+bun run dev      # docs / marketing site (Next.js, Turbopack)
+bun run build
+bun run test
+bun run typecheck
+```
+
+SDK-only:
+
+```bash
+bun run --cwd packages/sdk test
+bun run --cwd packages/sdk build
 ```
 
 ## Quick example
@@ -106,6 +133,8 @@ No DOM nodes. No CSS selectors. No visual noise. Just meaning.
 | **Layer 4 — Platform** | Synqel SaaS (commercial product) | Separate |
 
 ## Documentation
+
+Read the docs online at **[synqel-protocol.vercel.app/docs](https://synqel-protocol.vercel.app/docs)**. The sources in this repo mirror that site:
 
 - [Getting Started](./docs/sdk.md)
 - [Protocol Specification](./docs/protocol.md)
