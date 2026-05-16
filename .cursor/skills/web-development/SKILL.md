@@ -70,7 +70,7 @@ Example pattern for CSS variables:
 
 1. Create `apps/web/app/docs/<section>/page.tsx`
 2. Register routes and sidebar entries in `lib/docs-nav.ts` (`DOC_NAV_SECTIONS`, `DOC_SECTION_PAGES` if needed)
-3. Source content from `docs/<section>.md` (embed as strings or parse at build time)
+3. Align prose with **`docs/<section>.md`** (repo markdown is not consumed automatically — copy or refactor both sides deliberately)
 
 ## SDK code examples in docs
 
@@ -111,8 +111,13 @@ import { Nav } from "@/components/nav";
 import { Sidebar } from "@/components/sidebar";
 ```
 
-## Docs content source of truth
+## Docs content (`docs/` vs site pages)
 
-The canonical protocol content lives in `docs/` at the repo root. When updating docs pages:
-1. Update the markdown source in `docs/<file>.md`
-2. Update the corresponding `apps/web/app/docs/<section>/page.tsx` to reflect changes
+`docs/` and `apps/web/app/docs/*` describe the same protocol and SDK today, but the site pages are **hand-authored React** — they are **not** rendered from Markdown automatically.
+
+When docs change:
+
+1. Update `docs/<file>.md` for GitHub/repo readers.
+2. Update the matching route under `apps/web/app/docs/<section>/page.tsx` and `lib/docs-nav.ts` when URLs or headings change.
+
+See **`docs/README.md`** for the full split and drift risks.

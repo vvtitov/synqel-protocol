@@ -23,7 +23,7 @@ synqel-protocol/
 │   └── mcp/               # @synqel/mcp — MCP adapter (stdio tools)
 ├── apps/
 │   └── web/               # @synqel/web — Next.js 15 docs/marketing site
-├── docs/                  # Protocol markdown specs (consumed by apps/web)
+├── docs/                  # Protocol markdown specs (repo / GitHub; keep in sync with site)
 │   ├── protocol.md        # Core spec v0.1
 │   ├── sdk.md             # SDK usage guide
 │   ├── events.md          # Event taxonomy
@@ -44,6 +44,13 @@ synqel-protocol/
 | 3 — Runtime | Registry, policy, events, action handlers | `packages/sdk/` |
 | 4 — Platform | Synqel SaaS | Separate repo |
 
+## Documentation surfaces
+
+- **`docs/*.md`** — Markdown specifications and guides for reviewers and editors in Git.
+- **`apps/web`** — Public docs site (`/docs/*` routes). Written as React components, **not** auto-generated from `docs/`.
+
+When protocol or SDK behavior changes, update **both** where they overlap (see `docs/README.md` and `CONTRIBUTING.md`).
+
 ## Package manager
 
 Use **Bun** (primary). `bun.lock` is the source of truth.
@@ -52,14 +59,15 @@ Use **Bun** (primary). `bun.lock` is the source of truth.
 bun install            # install all workspaces
 bun run dev            # start web app (Turbopack)
 bun run build          # build SDK → MCP adapter → web (next build)
-bun run test           # run SDK tests (Vitest)
+bun run test           # run Vitest in SDK then MCP workspace
 bun run typecheck      # tsc --noEmit for SDK + MCP + web
 ```
 
-Run SDK tests directly:
+Run workspace tests directly:
 ```bash
 bun run --cwd packages/sdk test
 bun run --cwd packages/sdk build
+bun run --cwd packages/mcp test
 ```
 
 ## TypeScript conventions
@@ -82,9 +90,9 @@ bun run --cwd packages/sdk build
 
 ## Testing
 
-- **SDK only** uses Vitest v3 under `packages/sdk/__tests__/`
+- **Vitest v3**: `packages/sdk/__tests__/`, `packages/mcp/__tests__/`
 - No test framework for `apps/web`
-- Tests must pass before publishing (`prepublishOnly` runs test + build)
+- Publishing: `prepublishOnly` on **`@synqel/sdk`** and **`@synqel/mcp`** runs test + build
 
 ## Contributing / RFC process
 

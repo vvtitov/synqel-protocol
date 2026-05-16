@@ -85,7 +85,12 @@ bun run --cwd packages/sdk build
 ## Quick example
 
 ```typescript
-import { registerEntity, registerAction, registerWorkflow } from "@synqel/sdk";
+import {
+  registerEntity,
+  registerAction,
+  registerWorkflow,
+  bindAction,
+} from "@synqel/sdk";
 import { z } from "zod";
 import { useSemanticRuntime } from "@synqel/sdk/react";
 
@@ -112,6 +117,7 @@ bindAction("submit_checkout", async (_ctx, input) => {
 
 registerWorkflow({
   id: "checkout_flow",
+  // Illustrative step IDs — register matching actions (e.g. fill_shipping) or trim the list.
   steps: ["fill_shipping", "fill_payment", "submit_checkout"],
 });
 
@@ -196,7 +202,12 @@ No DOM nodes. No CSS selectors. No visual noise. Just meaning.
 
 ## Documentation
 
-Read the docs online at **[synqel-protocol.vercel.app/docs](https://synqel-protocol.vercel.app/docs)**. The sources in this repo mirror that site:
+Two surfaces share responsibility for the same story; keep them consistent when you edit behavior or spec text:
+
+- **`docs/`** — Markdown for GitHub and repo readers (`docs/README.md` explains the split).
+- **`apps/web`** — Public site at `/docs/*`, implemented as Next.js pages (`apps/web/app/docs/`, nav in `apps/web/lib/docs-nav.ts`).
+
+Read the docs online at **[synqel-protocol.vercel.app/docs](https://synqel-protocol.vercel.app/docs)**. The markdown in this repo overlaps with that site:
 
 - [Getting Started](./docs/sdk.md)
 - [Protocol Specification](./docs/protocol.md)
@@ -204,6 +215,8 @@ Read the docs online at **[synqel-protocol.vercel.app/docs](https://synqel-proto
 - [Policy System](./docs/policy.md)
 - [Examples](./docs/examples.md)
 - [MCP adapter](./packages/mcp/README.md) (`@synqel/mcp`)
+
+Release notes for published packages are in [CHANGELOG.md](./CHANGELOG.md). Planned work is outlined in [ROADMAP.md](./ROADMAP.md).
 
 ## Contributing
 

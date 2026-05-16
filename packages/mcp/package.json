@@ -22,11 +22,14 @@
   },
   "devDependencies": {
     "typescript": "^5.7.3",
+    "vitest": "^3.2.4",
     "zod": "^3.24.4"
   },
   "scripts": {
     "build": "tsc",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "start": "node dist/cli.js"
+    "start": "node dist/cli.js",
+    "prepublishOnly": "bun run test && bun run build"
   }
 }

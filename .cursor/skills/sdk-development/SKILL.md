@@ -102,7 +102,7 @@ useSemanticEvents(onEvent: (e: RuntimeEvent) => void)
 2. **Registry method** → `registry.ts`: validate with schema, emit appropriate bus event, bump version
 3. **Convenience wrapper** → `index.ts`: delegate to `getSemanticRegistry()`
 4. **Tests** → `packages/sdk/__tests__/`: cover happy path, validation errors, bus events
-5. **Docs** → update `docs/sdk.md` and/or `docs/protocol.md`
+5. **Docs** → update `docs/sdk.md` and/or `docs/protocol.md`, plus overlapping **`apps/web/app/docs/*`** prose when readers would see stale content on the public site (`docs/README.md`)
 6. If **breaking** → RFC required (see `CONTRIBUTING.md`)
 
 ## Adding a new event kind

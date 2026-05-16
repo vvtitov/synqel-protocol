@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "bun run --cwd apps/web dev",
     "build": "bun run --cwd packages/sdk build && bun run --cwd packages/mcp build && bun run --cwd apps/web build",
-    "test": "bun run --cwd packages/sdk test",
+    "test": "bun run --cwd packages/sdk test && bun run --cwd packages/mcp test",
     "typecheck": "bun run --cwd packages/sdk typecheck && bun run --cwd packages/mcp typecheck && bun run --cwd apps/web typecheck"
   },
   "packageManager": "bun@1.2.10"

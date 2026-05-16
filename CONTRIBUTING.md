@@ -2,6 +2,15 @@
 
 Thank you for your interest in contributing to Synqel Protocol! This document covers the process for contributing to both the protocol specification and the SDK implementation.
 
+## Documentation maintenance
+
+The repository has **two** documentation surfaces:
+
+- **`docs/*.md`** — Versioned markdown for readers browsing the repo or GitHub.
+- **`apps/web/app/docs/*`** — The public documentation site (Next.js routes; navigation in `apps/web/lib/docs-nav.ts`).
+
+They are **not** auto-synced. Any change that affects how the protocol or SDK is described for end users should usually update **both**, or at least cross-link and note the intentional difference. See **`docs/README.md`**.
+
 ## Protocol Evolution Process
 
 Synqel Protocol is a versioned open standard. Changes to the protocol follow a structured process to ensure stability for adopters.
@@ -70,7 +79,7 @@ bun run dev
 
 The SDK is published to **npm** (public) and **GitHub Packages** (mirror).
 
-- **`@synqel/mcp`** should be published with the same scope/process when you cut releases (build depends on the SDK being published or linked via workspace).
+- **`@synqel/mcp`** is published with the same scope/process when you cut releases. `prepublishOnly` runs tests and build (`bun run test && bun run build` from `packages/mcp`).
 
 - **npm:** from `packages/sdk`, with npm configured for [registry.npmjs.org](https://registry.npmjs.org), run `npm publish` after bumping `version` (or use your usual release process). `prepublishOnly` runs tests and build.
 - **GitHub Packages:** publishing is automated in [`.github/workflows/publish-sdk-github-packages.yml`](./.github/workflows/publish-sdk-github-packages.yml). Creating a **GitHub Release** runs the workflow, or you can start it manually under **Actions**.
@@ -88,14 +97,22 @@ The SDK is published to **npm** (public) and **GitHub Packages** (mirror).
 
 ### Writing tests
 
-Tests use [Vitest](https://vitest.dev). Place test files in `packages/sdk/__tests__/` following the naming convention `<module>.test.ts`.
+Tests use [Vitest](https://vitest.dev).
+
+- **`@synqel/sdk`**: place tests in `packages/sdk/__tests__/` as `<module>.test.ts`.
+- **`@synqel/mcp`**: place tests in `packages/mcp/__tests__/` as `<module>.test.ts` (MCP client/server smoke tests use the SDK’s in-memory transport pair).
 
 ```bash
-# Run tests once
-bun run --cwd packages/sdk test
+# Run repository test suite (SDK, then MCP)
+bun run test
 
-# Run tests in watch mode
+# Run workspace tests only
+bun run --cwd packages/sdk test
+bun run --cwd packages/mcp test
+
+# Watch mode (choose a package)
 bun run --cwd packages/sdk vitest
+bun run --cwd packages/mcp vitest
 ```
 
 ## Commit Message Convention
@@ -147,7 +164,7 @@ Before submitting a PR, confirm that:
 - [ ] All existing tests pass (`bun run test`)
 - [ ] New code has corresponding tests
 - [ ] Type checking passes (`bun run typecheck`)
-- [ ] Documentation is updated if the public API changed
+- [ ] Documentation is updated if the public API changed (**`docs/`** and overlapping **`apps/web/app/docs/`** pages where applicable)
 - [ ] Commit messages follow the conventional commits format
 - [ ] New `@synqel/sdk` runtime dependencies are justified (prefer staying lean: `zod` + `zod-to-json-schema`)
 - [ ] No `any` types were introduced
