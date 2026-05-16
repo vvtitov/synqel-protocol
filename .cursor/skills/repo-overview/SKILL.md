@@ -90,7 +90,7 @@ bun run --cwd packages/mcp test
 
 ## Testing
 
-- **Vitest v3**: `packages/sdk/__tests__/`, `packages/mcp/__tests__/`
+- **Vitest v3**: `packages/sdk/__tests__/`, `packages/mcp/__tests__/` (`@synqel/mcp` runs **`pretest`** to compile `packages/sdk/dist` — workspace `exports` require `dist` even though nothing needs to be installed from npm for local dev)
 - No test framework for `apps/web`
 - Publishing: `prepublishOnly` on **`@synqel/sdk`** and **`@synqel/mcp`** runs test + build
 

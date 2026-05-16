@@ -27,6 +27,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "pretest": "bun run --cwd ../sdk build",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "start": "node dist/cli.js",
