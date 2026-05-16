@@ -100,7 +100,7 @@ The SDK is published to **npm** (public) and **GitHub Packages** (mirror).
 Tests use [Vitest](https://vitest.dev).
 
 - **`@synqel/sdk`**: place tests in `packages/sdk/__tests__/` as `<module>.test.ts`.
-- **`@synqel/mcp`**: place tests in `packages/mcp/__tests__/` as `<module>.test.ts` (MCP client/server smoke tests use the SDK’s in-memory transport pair).
+- **`@synqel/mcp`**: place tests in `packages/mcp/__tests__/` as `<module>.test.ts` (MCP client/server smoke tests use the SDK’s in-memory transport pair). The MCP package declares **`pretest`** to compile `packages/sdk` first: `@synqel/sdk` is linked from the workspace, but its **`package.exports`** point at `dist/`, so **`dist`** must exist even before anything is published to npm or GitHub Packages.
 
 ```bash
 # Run repository test suite (SDK, then MCP)

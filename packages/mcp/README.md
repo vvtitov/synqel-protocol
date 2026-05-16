@@ -50,7 +50,8 @@ MIT
 
 ## Developing this package
 
+`bun run test` in this package runs **`pretest`** first, which compiles **`@synqel/sdk`** to `packages/sdk/dist` (Vitest resolves the workspace package through its `"exports"` field, which targets `dist/`, not unpublished npm).
+
 ```bash
-bun run --cwd packages/sdk build   # required for workspace TypeScript references
 bun run --cwd packages/mcp test
 ```
