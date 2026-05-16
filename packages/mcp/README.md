@@ -47,3 +47,10 @@ Integrations normally call `connectSynqelMcpStdio` from their own entrypoint aft
 ## License
 
 MIT
+
+## Developing this package
+
+```bash
+bun run --cwd packages/sdk build   # required for workspace TypeScript references
+bun run --cwd packages/mcp test
+```
