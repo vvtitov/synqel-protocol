@@ -3,7 +3,6 @@
 > The open standard for AI-navigable web applications.
 
 [![npm version](https://img.shields.io/npm/v/@synqel/sdk)](https://www.npmjs.com/package/@synqel/sdk)
-[![GitHub Packages](https://img.shields.io/badge/GitHub%20Packages-@synqel%2Fsdk-24292f?logo=github)](https://github.com/vvtitov/synqel-protocol/pkgs/npm/sdk)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue.svg)](https://www.typescriptlang.org/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
@@ -28,34 +27,15 @@ Screen readers faced this exact same problem and the web solved it with ARIA. **
 
 ## Install the SDK
 
-We publish `@synqel/sdk` to the **public npm registry** and mirror it on **[GitHub Packages](https://github.com/vvtitov/synqel-protocol/pkgs/npm/sdk)** (same name and versions). Prefer **Bun** or **pnpm** for installs; they tend to be faster and make lockfile review easier. The JavaScript ecosystem has seen repeated **supply-chain incidents** (typosquatting, leaked tokens, compromised maintainer accounts). No package manager is risk-free; we simply prefer Bun/pnpm day to day and do not document `npm install` as the default path.
-
-**From the default registry (npm):**
+We publish `@synqel/sdk` to the **public npm registry**. Prefer **Bun** or **pnpm** for installs; they tend to be faster and make lockfile review easier. The JavaScript ecosystem has seen repeated **supply-chain incidents** (typosquatting, leaked tokens, compromised maintainer accounts). No package manager is risk-free; we simply prefer Bun/pnpm day to day and do not document `npm install` as the default path.
 
 ```bash
-bun add @synqel/sdk
+bun add @synqel/sdk zod
 ```
 
 ```bash
-pnpm add @synqel/sdk
+pnpm add @synqel/sdk zod
 ```
-
-**From GitHub Packages** (optional; use the same semver as npm). Point the `@synqel` scope at GitHub’s npm registry, then install as usual:
-
-```ini
-# .npmrc (repo or user — exact file name may vary with your tool)
-@synqel:registry=https://npm.pkg.github.com
-```
-
-```bash
-bun add @synqel/sdk
-```
-
-```bash
-pnpm add @synqel/sdk
-```
-
-If the package is **private** in your GitHub org, add a token with at least `read:packages` as `//npm.pkg.github.com/:_authToken=…` in `.npmrc` or via your tool’s secret env. Public packages on GitHub Packages generally install **without** auth.
 
 Peers: you need **`zod`**; for `import "@synqel/sdk/react"` you need **React 18+**.
 
