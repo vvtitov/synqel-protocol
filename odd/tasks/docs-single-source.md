@@ -13,7 +13,7 @@ Branch: `docs/single-source` (stacked on `feat/execute-result-union`, PR #4) · 
 
 ## Tasks
 
-- T1 [S2] delegated (writer, parallel with T2; disjoint surface `docs/`) — reconcile content into docs/*.md — pending
+- T1 [S2] delegated (writer, parallel with T2; disjoint surface `docs/`) — reconcile content into docs/*.md — done (structural check OK; samples verified against packages/sdk/dist)
 - T2 [S3] delegated (writer, parallel with T1; disjoint surface `apps/web/components`, `apps/web/lib`, deps) — markdown renderer + prose styles — done (24 web tests, RED→GREEN; typecheck and build pass)
 - T3 [S3, S4] inline — replace TSX pages with md-backed pages, update nav hashes, anchor test — pending (depends on T1, T2)
 - T4 [S5] inline — update README/CONTRIBUTING/docs/README and CHANGELOG — pending
@@ -24,3 +24,5 @@ Branch: `docs/single-source` (stacked on `feat/execute-result-union`, PR #4) · 
 - L2: Explorer map: 6 TSX pages (protocol, sdk, events, policy, examples, getting started) vs 5 md files + docs/README.md; every pair has drifted; no markdown deps; nav scroll-spy needs DOM ids equal to nav hashes; CodeBlock has no syntax highlighting; no web tests.
 - L3: Route declaration: T1 and T2 delegated under the Writer trigger (parallel units, disjoint edit surfaces, each several minutes of work) and the long-session context backstop; T3/T4 inline.
 - L4: T2 writer: react-markdown 10 + remark-gfm + github-slugger; headingIds and the renderer share one remark plugin (ids match by construction, H1 counted like GitHub); fence meta `title="..."` read from hast `data.meta`; `.doc-prose` styles in globals.css; apps/web gets Vitest (24 tests). Parent spot check: `bun run --cwd apps/web test` 24 passed; diff stayed inside the declared surface.
+- L5: T1 writer reconciled all pairs and added docs/getting-started.md. Corrections backed by code: custom policy rules are NOT applied by executeAction (registry.ts calls evaluatePolicy without rules), docs now show a wrapper pattern; examples' registryVersion values recomputed; inputJsonSchema shown as real draft-07 output; dashboard example given a handler; events docs say workflow:* run and intent:* events are host-emitted only. Out-of-scope finding: react.ts useSemanticRuntime passes a non-cached getSnapshot() to useSyncExternalStore.
+- L6: Slugs for nav (T3): protocol entities, actions, capabilities, workflows, registry-snapshot; sdk registerentity, registeraction, bindaction, executeaction, snapshot-serialization, registercapability, registerworkflow, semanticregistry, semanticeventbus, evaluatepolicy, usesemanticruntime, usesemanticevents, mcp-adapter-synqelmcp; examples e-commerce-product-page, multi-step-form, dashboard-navigation, agents-http-and-mcp; getting-started installation, quick-start.
