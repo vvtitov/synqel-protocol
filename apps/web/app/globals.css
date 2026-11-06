@@ -324,3 +324,187 @@ main :where(a, button):focus-visible {
   .reveal-stagger > *   { opacity: 1; transform: none; transition: none; }
   .card-lift            { transition: none; }
 }
+
+/* ── Markdown docs prose (rendered from docs/*.md by <Markdown>) ──
+   Mirrors the hand-written doc pages: primary headings, secondary body text,
+   mono inline code, bordered tables. Colors come from the theme variables, so
+   light and dark modes follow `prefers-color-scheme` automatically. */
+.doc-prose {
+  max-width: 48rem;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.625;
+}
+
+.doc-prose > :first-child {
+  margin-top: 0;
+}
+
+.doc-prose h1 {
+  color: var(--color-text-primary);
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+/* Lead paragraph right after the title, like the TSX pages' intro text. */
+.doc-prose h1 + p {
+  margin-top: 1rem;
+  font-size: 1.125rem;
+  line-height: 1.625;
+}
+
+.doc-prose h2 {
+  margin-top: 3rem;
+  color: var(--color-text-primary);
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 600;
+}
+
+.doc-prose h3 {
+  margin-top: 2rem;
+  color: var(--color-text-primary);
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  font-weight: 600;
+}
+
+.doc-prose h4,
+.doc-prose h5,
+.doc-prose h6 {
+  margin-top: 1.5rem;
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.doc-prose p,
+.doc-prose ul,
+.doc-prose ol,
+.doc-prose blockquote,
+.doc-prose .doc-table,
+.doc-prose .doc-code {
+  margin-top: 1rem;
+}
+
+.doc-prose h2 + p,
+.doc-prose h3 + p {
+  margin-top: 0.75rem;
+}
+
+.doc-prose ul,
+.doc-prose ol {
+  padding-left: 1.25rem;
+}
+
+.doc-prose ul {
+  list-style: disc;
+}
+
+.doc-prose ol {
+  list-style: decimal;
+}
+
+.doc-prose li + li {
+  margin-top: 0.5rem;
+}
+
+.doc-prose li > ul,
+.doc-prose li > ol,
+.doc-prose li > p {
+  margin-top: 0.5rem;
+}
+
+.doc-prose li::marker {
+  color: var(--color-text-muted);
+}
+
+/* GFM task lists */
+.doc-prose li:has(> input[type="checkbox"]) {
+  list-style: none;
+}
+
+.doc-prose strong {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.doc-prose a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.doc-prose a:hover {
+  opacity: 0.9;
+}
+
+/* Inline code only; fenced code is rendered by CodeBlock. */
+.doc-prose :not(pre) > code {
+  color: var(--color-text-primary);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.875em;
+}
+
+.doc-prose h1 code,
+.doc-prose h2 code,
+.doc-prose h3 code {
+  font-size: inherit;
+}
+
+.doc-prose blockquote {
+  border-left: 3px solid var(--color-accent);
+  border-radius: 0 0.5rem 0.5rem 0;
+  background-color: var(--color-bg-secondary);
+  padding: 0.75rem 1rem;
+}
+
+.doc-prose blockquote > :first-child {
+  margin-top: 0;
+}
+
+.doc-prose hr {
+  margin: 2.5rem 0;
+  border: 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.doc-table {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.doc-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.doc-prose thead tr,
+.doc-prose tbody tr {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.doc-prose th {
+  padding: 0 1rem 0.75rem 0;
+  color: var(--color-text-primary);
+  font-weight: 600;
+  vertical-align: bottom;
+}
+
+.doc-prose td {
+  padding: 0.75rem 1rem 0.75rem 0;
+  vertical-align: top;
+}
+
+.doc-prose th:last-child,
+.doc-prose td:last-child {
+  padding-right: 0;
+}
+
+.doc-prose td code {
+  color: var(--color-accent);
+  font-size: 0.75rem;
+}

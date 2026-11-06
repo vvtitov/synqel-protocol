@@ -14,7 +14,7 @@ Branch: `docs/single-source` (stacked on `feat/execute-result-union`, PR #4) · 
 ## Tasks
 
 - T1 [S2] delegated (writer, parallel with T2; disjoint surface `docs/`) — reconcile content into docs/*.md — pending
-- T2 [S3] delegated (writer, parallel with T1; disjoint surface `apps/web/components`, `apps/web/lib`, deps) — markdown renderer + prose styles — pending
+- T2 [S3] delegated (writer, parallel with T1; disjoint surface `apps/web/components`, `apps/web/lib`, deps) — markdown renderer + prose styles — done (24 web tests, RED→GREEN; typecheck and build pass)
 - T3 [S3, S4] inline — replace TSX pages with md-backed pages, update nav hashes, anchor test — pending (depends on T1, T2)
 - T4 [S5] inline — update README/CONTRIBUTING/docs/README and CHANGELOG — pending
 
@@ -23,3 +23,4 @@ Branch: `docs/single-source` (stacked on `feat/execute-result-union`, PR #4) · 
 - L1 (2026-11-06): "continuemos con los pendientes" + chosen option "docs/*.md → sitio (Recomendado)".
 - L2: Explorer map: 6 TSX pages (protocol, sdk, events, policy, examples, getting started) vs 5 md files + docs/README.md; every pair has drifted; no markdown deps; nav scroll-spy needs DOM ids equal to nav hashes; CodeBlock has no syntax highlighting; no web tests.
 - L3: Route declaration: T1 and T2 delegated under the Writer trigger (parallel units, disjoint edit surfaces, each several minutes of work) and the long-session context backstop; T3/T4 inline.
+- L4: T2 writer: react-markdown 10 + remark-gfm + github-slugger; headingIds and the renderer share one remark plugin (ids match by construction, H1 counted like GitHub); fence meta `title="..."` read from hast `data.meta`; `.doc-prose` styles in globals.css; apps/web gets Vitest (24 tests). Parent spot check: `bun run --cwd apps/web test` 24 passed; diff stayed inside the declared surface.
