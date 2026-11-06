@@ -71,7 +71,7 @@ await executeAction(
 );
 ```
 
-It resolves with `{ ok, data?, message?, code? }`. On failure, `code` tells why:
+It resolves with either `{ ok: true, data? }` or `{ ok: false, code, message }` (`ExecuteActionSuccess` / `ExecuteActionFailure`). Check `ok` before reading the other fields; TypeScript narrows the type for you. On failure, `code` tells why:
 
 | `code` | When |
 |--------|------|
@@ -81,7 +81,7 @@ It resolves with `{ ok, data?, message?, code? }`. On failure, `code` tells why:
 | `unbound` | The action has no bound handler |
 | `handler_error` | The handler threw; `message` holds the thrown `Error`'s message, or "Action handler threw a non-Error value." for other thrown values |
 
-Successful results carry no `code`.
+Successful results carry no `code` or `message`.
 
 ### registerCapability / registerWorkflow
 

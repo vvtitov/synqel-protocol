@@ -65,7 +65,7 @@ export type ExecuteActionOptions = {
   sessionId?: string;
 };
 
-/** Why {@link ExecuteActionResult} failed. Present only when `ok` is `false`. */
+/** Why an {@link ExecuteActionResult} failed. */
 export type ExecuteActionErrorCode =
   | "not_found"
   | "policy_denied"
@@ -73,12 +73,20 @@ export type ExecuteActionErrorCode =
   | "unbound"
   | "handler_error";
 
-export type ExecuteActionResult = {
-  ok: boolean;
-  message?: string;
+export type ExecuteActionSuccess = {
+  ok: true;
+  /** Whatever the bound handler returned; omitted when it returned `undefined`. */
   data?: unknown;
-  code?: ExecuteActionErrorCode;
 };
+
+export type ExecuteActionFailure = {
+  ok: false;
+  code: ExecuteActionErrorCode;
+  message: string;
+};
+
+/** Narrow on `ok`: failures always carry `code` and `message`, successes never do. */
+export type ExecuteActionResult = ExecuteActionSuccess | ExecuteActionFailure;
 
 export type RuntimeEvent =
   | { type: "entity:registered"; entity: SemanticEntity }

@@ -156,8 +156,7 @@ describe("SemanticRegistry", () => {
         actor: "human",
         roles: [],
       });
-      expect(result.ok).toBe(true);
-      expect(result.data).toEqual({ pong: true });
+      expect(result).toEqual({ ok: true, data: { pong: true } });
     });
 
     it("validates input when inputSchema was registered", async () => {
@@ -182,8 +181,7 @@ describe("SemanticRegistry", () => {
         { actor: "human", roles: [] },
         { a: 1, b: 2 },
       );
-      expect(good.ok).toBe(true);
-      expect(good.data).toBe(3);
+      expect(good).toEqual({ ok: true, data: 3 });
     });
 
     it("includes sessionId on action:attempt when provided", async () => {
@@ -364,6 +362,7 @@ describe("SemanticRegistry", () => {
         undefined,
       );
       expect(result.ok).toBe(false);
+      if (result.ok) throw new Error("expected a failure");
       expect(result.message).toContain("No handler");
     });
   });
@@ -437,6 +436,7 @@ describe("executeAction failure codes", () => {
     );
 
     expect(result.ok).toBe(false);
+    if (result.ok) throw new Error("expected a failure");
     expect(result.code).toBe("invalid_input");
     expect(result.message).toContain("sku");
   });

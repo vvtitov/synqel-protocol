@@ -264,14 +264,15 @@ export default function SdkPage() {
           <CodeBlock code={EXECUTE_ACTION_CODE} language="typescript" />
         </div>
         <p className="mt-4 text-sm leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
-          Resolves with <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>{"{ ok, data?, message?, code? }"}</code>. On failure,{" "}
+          Resolves with <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>{"{ ok: true, data? }"}</code> or{" "}
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>{"{ ok: false, code, message }"}</code>; check{" "}
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>ok</code> before reading the other fields. On failure,{" "}
           <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>code</code> tells why:{" "}
           <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>not_found</code>,{" "}
           <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>policy_denied</code>,{" "}
           <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>invalid_input</code>,{" "}
           <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>unbound</code> (no handler bound) or{" "}
-          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>handler_error</code> (the handler threw). Successful results carry no{" "}
-          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>code</code>.
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>handler_error</code> (the handler threw).
         </p>
       </section>
 
