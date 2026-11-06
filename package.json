@@ -11,5 +11,5 @@
     "test": "bun run --cwd packages/sdk test && bun run --cwd packages/mcp test",
     "typecheck": "bun run --cwd packages/sdk typecheck && bun run --cwd packages/mcp typecheck && bun run --cwd apps/web typecheck"
   },
-  "packageManager": "bun@1.2.10"
+  "packageManager": "bun@1.3.14"
 }
