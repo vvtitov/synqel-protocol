@@ -1,8 +1,14 @@
+import { createRequire } from "node:module";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import type { SemanticRegistry, PolicyContext } from "@synqel/sdk";
 import { serializeSnapshotEnvelope } from "@synqel/sdk";
+
+/** Package version reported as the MCP server version; read from the shipped manifest. */
+export const SYNQEL_MCP_VERSION: string = (
+  createRequire(import.meta.url)("../package.json") as { version: string }
+).version;
 
 export type SynqelMcpServerOptions = {
   /** Used when `synqel_execute_action` omits `policyContext`. Defaults to `{ actor: "agent", roles: [] }`. */
@@ -77,7 +83,7 @@ export async function connectSynqelMcpStdio(
   options?: SynqelMcpServerOptions,
 ): Promise<McpServer> {
   const server = new McpServer(
-    { name: "synqel", version: "0.1.0" },
+    { name: "synqel", version: SYNQEL_MCP_VERSION },
     {
       instructions:
         "Synqel exposes your app's semantic registry over MCP: fetch the snapshot, then execute actions subject to policy and bindings.",

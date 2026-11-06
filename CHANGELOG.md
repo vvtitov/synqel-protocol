@@ -6,9 +6,28 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/
 
 ## Unreleased
 
+## 0.1.1
+
+Published to npm for both packages. First npm release of `@synqel/mcp`; `@synqel/sdk` 0.1.0 had been published and unpublished in May 2026.
+
+### `@synqel/mcp`
+
+- Update `@modelcontextprotocol/sdk` to `^1.32.2`.
+- Declare `zod` as a peer dependency. The adapter imports it at runtime but previously listed it only as a dev dependency.
+- Depend on `@synqel/sdk` with a caret range (`^0.1.1`) instead of an exact workspace pin.
+- Export `SYNQEL_MCP_VERSION`, read from the package manifest; the MCP server reports it as its version instead of a hard-coded string.
+- Add a Vitest suite with in-memory MCP client/server transport: tool listing, snapshot envelope, `inputJsonSchema`, `sessionId` passthrough, `defaultPolicyContext`, and error paths (unknown action, policy denial, invalid input, unbound handler, throwing handler, missing tool arguments).
+
+### Both packages
+
+- Require `zod` `^3.25.28` as a peer dependency (was `>=3` in `@synqel/sdk`). `zod-to-json-schema` 3.25.2, used for `inputJsonSchema`, requires that minimum.
+- Set `publishConfig.access` to `public` and ship the MIT `LICENSE` file in each tarball.
+
+### Repository
+
 - Document dual documentation surfaces (`docs/` vs `apps/web`) and mitigation in `CONTRIBUTING.md` / `docs/README.md`.
-- Add `@synqel/mcp` Vitest suite with in-memory MCP client/server transport smoke tests.
+- Remove the stray `yarn.lock`; Bun is the only package manager.
 
 ## 0.1.0
 
-- Initial publish of `@synqel/sdk` and `@synqel/mcp` aligned with protocol v0.1: semantic registry, snapshots, policy, events, MCP tools (`synqel_get_snapshot`, `synqel_execute_action`).
+- Initial version of `@synqel/sdk` and `@synqel/mcp` aligned with protocol v0.1: semantic registry, snapshots, policy, events, MCP tools (`synqel_get_snapshot`, `synqel_execute_action`). `@synqel/sdk` 0.1.0 was published to npm on 2026-05-13 and unpublished on 2026-05-14; `@synqel/mcp` 0.1.0 was never published.

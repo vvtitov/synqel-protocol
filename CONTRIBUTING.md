@@ -75,21 +75,24 @@ bun run typecheck
 bun run dev
 ```
 
-### Publishing `@synqel/sdk`
+### Publishing `@synqel/sdk` and `@synqel/mcp`
 
-The SDK is published to **npm** (public) and **GitHub Packages** (mirror).
+Both packages are published to **npm** (public).
 
-- **`@synqel/mcp`** is published with the same scope/process when you cut releases. `prepublishOnly` runs tests and build (`bun run test && bun run build` from `packages/mcp`).
+- **Use `bun publish`, never `npm publish`.** `@synqel/mcp` depends on `@synqel/sdk` through the `workspace:^` protocol. `bun publish` rewrites it to a real semver range (for example `^0.1.1`); `npm publish` ships `workspace:^` verbatim and the package becomes uninstallable.
+- **Order:** publish `@synqel/sdk` first, then `@synqel/mcp`, so the SDK version the MCP package depends on already exists.
+- **Before publishing:** bump `version` in both `package.json` files and the workspace `version` entries in `bun.lock` (the MCP server reads its reported version from its manifest); move the `Unreleased` notes in `CHANGELOG.md` under the new version.
+- **Dry run:** `bun publish --dry-run` from each package directory, and `bun pm pack` to inspect the tarball's `package.json`.
+- `prepublishOnly` runs tests and build in each package. `publishConfig.access` is `public`, so scoped packages publish publicly without extra flags.
 
-- **npm:** from `packages/sdk`, with npm configured for [registry.npmjs.org](https://registry.npmjs.org), run `npm publish` after bumping `version` (or use your usual release process). `prepublishOnly` runs tests and build.
-- **GitHub Packages:** publishing is automated in [`.github/workflows/publish-sdk-github-packages.yml`](./.github/workflows/publish-sdk-github-packages.yml). Creating a **GitHub Release** runs the workflow, or you can start it manually under **Actions**.
+**GitHub Packages (optional mirror, not set up yet):** publishing is automated in [`.github/workflows/publish-sdk-github-packages.yml`](./.github/workflows/publish-sdk-github-packages.yml). Creating a **GitHub Release** runs the workflow, or you can start it manually under **Actions**.
 - **Scope vs repo owner:** GitHub’s npm registry expects the package scope to match a GitHub **user or organization** name. For `@synqel/sdk`, the account **`synqel`** on GitHub must own the package. If this repository is under another owner (for example a personal account), add a repository secret **`GH_PACKAGES_PUBLISH_TOKEN`**: a classic PAT or fine-grained token with `write:packages` for the **`synqel`** org (or whichever GitHub owner matches `@synqel`). If the secret is absent, the workflow uses `GITHUB_TOKEN`, which only works when the repository owner matches the npm scope.
 - After the first successful publish, link or confirm the package under the repository’s **Packages** tab and set visibility to **public** if you want unauthenticated installs from GitHub.
 
 ### Rules for SDK contributions
 
 - **Tests required**: every new export must have corresponding unit tests
-- **Keep runtime dependencies minimal**: `@synqel/sdk` ships **`zod`** (peer) plus **`zod-to-json-schema`** for JSON Schema export; do not add transitive-heavy stacks without discussion.
+- **Keep runtime dependencies minimal**: `@synqel/sdk` ships **`zod`** (peer, `^3.25.28`) plus **`zod-to-json-schema`** for JSON Schema export; do not add transitive-heavy stacks without discussion.
 - **`@synqel/mcp`** may depend on `@modelcontextprotocol/sdk` — keep that boundary (transport only).
 - **No `any` types**: every export must be fully typed
 - **Strict mode**: TypeScript strict mode is enforced

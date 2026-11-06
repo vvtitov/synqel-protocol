@@ -1,6 +1,6 @@
 {
   "name": "@synqel/mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Model Context Protocol adapter for Synqel — expose registry snapshot and execute actions over MCP",
   "license": "MIT",
   "type": "module",
@@ -16,14 +16,29 @@
     "url": "https://github.com/vvtitov/synqel-protocol.git",
     "directory": "packages/mcp"
   },
+  "homepage": "https://github.com/vvtitov/synqel-protocol/tree/main/packages/mcp#readme",
+  "bugs": {
+    "url": "https://github.com/vvtitov/synqel-protocol/issues"
+  },
+  "keywords": [
+    "ai",
+    "agents",
+    "mcp",
+    "model-context-protocol",
+    "semantic",
+    "synqel"
+  ],
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.12.1",
-    "@synqel/sdk": "workspace:*"
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "@synqel/sdk": "workspace:^"
+  },
+  "peerDependencies": {
+    "zod": "^3.25.28"
   },
   "devDependencies": {
     "typescript": "^5.7.3",
     "vitest": "^3.2.4",
-    "zod": "^3.24.4"
+    "zod": "^3.25.28"
   },
   "scripts": {
     "build": "tsc",
@@ -32,5 +47,8 @@
     "typecheck": "tsc --noEmit",
     "start": "node dist/cli.js",
     "prepublishOnly": "bun run test && bun run build"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

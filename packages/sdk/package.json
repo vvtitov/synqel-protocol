@@ -1,6 +1,6 @@
 {
   "name": "@synqel/sdk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Semantic runtime SDK — the open standard for AI-navigable web applications",
   "license": "MIT",
   "type": "module",
@@ -17,7 +17,7 @@
   "files": ["dist"],
   "peerDependencies": {
     "react": ">=18",
-    "zod": ">=3"
+    "zod": "^3.25.28"
   },
   "peerDependenciesMeta": {
     "react": {
@@ -28,7 +28,7 @@
     "typescript": "^5.7.3",
     "vitest": "^3.1.3",
     "@types/react": "^19.1.2",
-    "zod": "^3.24.4",
+    "zod": "^3.25.28",
     "react": "^19.1.0"
   },
   "repository": {
@@ -60,5 +60,8 @@
   },
   "dependencies": {
     "zod-to-json-schema": "^3.25.2"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
