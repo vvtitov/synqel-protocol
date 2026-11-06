@@ -77,7 +77,7 @@ export async function connectSynqelMcpStdio(
   options?: SynqelMcpServerOptions,
 ): Promise<McpServer> {
   const server = new McpServer(
-    { name: "synqel", version: "0.1.0" },
+    { name: "synqel", version: "0.1.1" },
     {
       instructions:
         "Synqel exposes your app's semantic registry over MCP: fetch the snapshot, then execute actions subject to policy and bindings.",

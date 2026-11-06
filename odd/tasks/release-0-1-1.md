@@ -17,8 +17,8 @@ Branch: `chore/release-0.1.1` · Delivery: ask-on-risk · Test runner: Vitest vi
 
 - T1 [S2] inline — MCP error-path and option tests — done (mcp suite 4 → 13 passing)
 - T2 [S3] inline — bump MCP SDK, keep suite green — done (1.12.1 → 1.32.2; 85 tests, typecheck, build, stdio smoke OK)
-- T3 [S4, S5] inline — remove yarn.lock (done), fix README badges (blocked: needs publish decision)
-- T4 [S6] inline — version bump + CHANGELOG, stop before publish — pending
+- T3 [S4, S5] inline — remove yarn.lock (3c4a3da), README/CONTRIBUTING publish docs — done
+- T4 [S6] inline — 0.1.1 manifests, lockfile, LICENSE, CHANGELOG — done; publish is the user's step
 
 ## Log
 
@@ -27,3 +27,5 @@ Branch: `chore/release-0.1.1` · Delivery: ask-on-risk · Test runner: Vitest vi
 - L3: Finding: `synqel_execute_action` returns failures (`ok:false`) without MCP `isError: true`. T1 pins current behavior; changing it is a user decision.
 - L4: Correction: before T2 the lockfile resolved `@modelcontextprotocol/sdk` 1.29.0 (manifest said ^1.12.1), so the real jump was 1.29.0 → 1.32.2.
 - L5: Native review of main..2ea3c7f (lineage review-fa4db42786a710b7, lenses risk+reliability): approved, acknowledged, authority burned. Advisories addressed in a follow-up commit: missing-args test made deterministic; `zod` declared as peer of `@synqel/mcp` (src imports it at runtime but it was devDependency-only). Left open: thrown handler `Error.message` is passed verbatim to agents (pre-existing, user decision); `bun.lock` `configVersion` written by local bun 1.3.14 vs `packageManager: bun@1.2.10` pin.
+- L6 (2026-11-06): "voy a publicar en npm, prepará la 0.1.1 y dame el paso a paso"
+- L7: Found `npm publish` would ship `workspace:*` verbatim; switched docs to `bun publish` and the dependency to `workspace:^` (packs as `^0.1.1`). Added `publishConfig.access: public`. bun does not refresh workspace versions in bun.lock on install; edited them by hand and validated with `bun install --frozen-lockfile`. `bun pm pack` tarballs: sdk 31 files, mcp 11 files (dist, README, LICENSE only). `bun publish --dry-run` stops at "missing authentication".
