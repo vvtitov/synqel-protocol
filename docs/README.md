@@ -1,22 +1,18 @@
 # Protocol documentation (`docs/`)
 
-Markdown sources for Synqel Protocol **v0.1** and related guides:
+Markdown sources for Synqel Protocol and its reference packages. These files are the single source of documentation: the public site at [synqel-protocol.vercel.app/docs](https://synqel-protocol.vercel.app/docs) renders them at build time.
 
-| File | Topic |
-|------|--------|
-| [protocol.md](./protocol.md) | Normative protocol shapes and versioning |
-| [sdk.md](./sdk.md) | `@synqel/sdk` APIs and integration |
-| [events.md](./events.md) | Runtime event taxonomy |
-| [policy.md](./policy.md) | Policy evaluation rules |
-| [examples.md](./examples.md) | Integration patterns |
+| File | Site route | Topic |
+|------|------------|-------|
+| [getting-started.md](./getting-started.md) | `/docs` | Installation, quick start, what an agent sees |
+| [protocol.md](./protocol.md) | `/docs/protocol` | Normative protocol shapes and versioning |
+| [sdk.md](./sdk.md) | `/docs/sdk` | `@synqel/sdk` and `@synqel/mcp` APIs |
+| [events.md](./events.md) | `/docs/events` | Runtime event taxonomy |
+| [policy.md](./policy.md) | `/docs/policy` | Policy evaluation rules |
+| [examples.md](./examples.md) | `/docs/examples` | Integration patterns |
 
-## Relationship to `apps/web`
+## Editing
 
-The public site builds from **React pages** under `apps/web/app/docs/` (navigation in `apps/web/lib/docs-nav.ts`). Those pages are **not** generated from this folder today.
-
-That means two documentation surfaces exist:
-
-- **Readers on GitHub** — start here (`docs/`).
-- **Readers on synqel-protocol.vercel.app** — curated pages in `apps/web`.
-
-Both should stay aligned whenever you change specification wording, taxonomy, APIs, or examples that appear in either place.
+- Edit these files only; the site pages under `apps/web/app/docs/` just render them.
+- Link other docs with `./<name>.md`; the site rewrites those links to its routes. Link files outside `docs/` with full GitHub URLs.
+- Heading anchors follow GitHub's slugs, so `#anchor` links work the same on GitHub and on the site. Sidebar entries in `apps/web/lib/docs-nav.ts` must point to existing headings; `bun run test` checks this.

@@ -15,8 +15,8 @@ Branch: `docs/single-source` (stacked on `feat/execute-result-union`, PR #4) · 
 
 - T1 [S2] delegated (writer, parallel with T2; disjoint surface `docs/`) — reconcile content into docs/*.md — done (structural check OK; samples verified against packages/sdk/dist)
 - T2 [S3] delegated (writer, parallel with T1; disjoint surface `apps/web/components`, `apps/web/lib`, deps) — markdown renderer + prose styles — done (24 web tests, RED→GREEN; typecheck and build pass)
-- T3 [S3, S4] inline — replace TSX pages with md-backed pages, update nav hashes, anchor test — pending (depends on T1, T2)
-- T4 [S5] inline — update README/CONTRIBUTING/docs/README and CHANGELOG — pending
+- T3 [S3, S4] inline — replace TSX pages with md-backed pages, update nav hashes, anchor test — done (anchor test RED 17 → GREEN; build renders 6 static routes)
+- T4 [S5] inline — update README/CONTRIBUTING/docs/README/ROADMAP — done (CHANGELOG untouched: package-only and PR #5 edits the same section)
 
 ## Log
 
@@ -26,3 +26,4 @@ Branch: `docs/single-source` (stacked on `feat/execute-result-union`, PR #4) · 
 - L4: T2 writer: react-markdown 10 + remark-gfm + github-slugger; headingIds and the renderer share one remark plugin (ids match by construction, H1 counted like GitHub); fence meta `title="..."` read from hast `data.meta`; `.doc-prose` styles in globals.css; apps/web gets Vitest (24 tests). Parent spot check: `bun run --cwd apps/web test` 24 passed; diff stayed inside the declared surface.
 - L5: T1 writer reconciled all pairs and added docs/getting-started.md. Corrections backed by code: custom policy rules are NOT applied by executeAction (registry.ts calls evaluatePolicy without rules), docs now show a wrapper pattern; examples' registryVersion values recomputed; inputJsonSchema shown as real draft-07 output; dashboard example given a handler; events docs say workflow:* run and intent:* events are host-emitted only. Out-of-scope finding: react.ts useSemanticRuntime passes a non-cached getSnapshot() to useSyncExternalStore.
 - L6: Slugs for nav (T3): protocol entities, actions, capabilities, workflows, registry-snapshot; sdk registerentity, registeraction, bindaction, executeaction, snapshot-serialization, registercapability, registerworkflow, semanticregistry, semanticeventbus, evaluatepolicy, usesemanticruntime, usesemanticevents, mcp-adapter-synqelmcp; examples e-commerce-product-page, multi-step-form, dashboard-navigation, agents-http-and-mcp; getting-started installation, quick-start.
+- L7: T3/T4 inline. Rebased on origin/main after PR #4 merged. Root `bun run test` now includes apps/web (sdk 82, mcp 16, web 49). Generated HTML checked: nav ids present, 17 code blocks with Copy on /docs/sdk, fence titles shown, no local .md hrefs, per-page <title>.
