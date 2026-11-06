@@ -102,7 +102,7 @@ Both packages are published to **npm** (public).
 
 Tests use [Vitest](https://vitest.dev).
 
-- **`@synqel/sdk`**: place tests in `packages/sdk/__tests__/` as `<module>.test.ts`.
+- **`@synqel/sdk`**: place tests in `packages/sdk/__tests__/` as `<module>.test.ts`. Type-level tests go in `<name>.test-d.ts` and use `expectTypeOf`; Vitest type-checks them, and every other test file, with `tsconfig.test.json` as part of `bun run test`.
 - **`@synqel/mcp`**: place tests in `packages/mcp/__tests__/` as `<module>.test.ts` (MCP client/server smoke tests use the SDK’s in-memory transport pair). The MCP package declares **`pretest`** to compile `packages/sdk` first: `@synqel/sdk` is linked from the workspace, but its **`package.exports`** point at `dist/`, so **`dist`** must exist before the tests run.
 
 ```bash

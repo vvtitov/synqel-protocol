@@ -73,7 +73,7 @@ export function attachSynqelRegistryToMcpServer(
         sessionId: args.sessionId,
       });
       const payload =
-        result.code === "handler_error" && !options?.exposeHandlerErrors
+        !result.ok && result.code === "handler_error" && !options?.exposeHandlerErrors
           ? { ...result, message: HANDLER_ERROR_MESSAGE }
           : result;
       return {

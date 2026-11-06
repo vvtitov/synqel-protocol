@@ -12,6 +12,8 @@ export type {
   SemanticActionHandler,
   ExecuteActionOptions,
   ExecuteActionResult,
+  ExecuteActionSuccess,
+  ExecuteActionFailure,
   ExecuteActionErrorCode,
 } from "./types.js";
 
