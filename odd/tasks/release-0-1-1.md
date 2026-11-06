@@ -16,7 +16,7 @@ Branch: `chore/release-0.1.1` · Delivery: ask-on-risk · Test runner: Vitest vi
 ## Tasks
 
 - T1 [S2] inline — MCP error-path and option tests — done (mcp suite 4 → 13 passing)
-- T2 [S3] inline — bump MCP SDK, keep suite green — pending
+- T2 [S3] inline — bump MCP SDK, keep suite green — done (1.12.1 → 1.32.2; 85 tests, typecheck, build, stdio smoke OK)
 - T3 [S4, S5] inline — remove yarn.lock, fix README badges — pending
 - T4 [S6] inline — version bump + CHANGELOG, stop before publish — pending
 
