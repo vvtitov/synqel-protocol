@@ -172,18 +172,21 @@ describe("attachSynqelRegistryToMcpServer", () => {
   });
 
   describe("error paths", () => {
-    it("returns ok:false for an unknown action", async () => {
+    it("flags an unknown action as an MCP tool error with code not_found", async () => {
       const result = await client.callTool({
         name: "synqel_execute_action",
         arguments: { actionId: "does_not_exist" },
       });
 
-      const payload = readExecPayload(result);
-      expect(payload.ok).toBe(false);
-      expect(payload.message).toBe('Action "does_not_exist" not found in registry.');
+      expect(result.isError).toBe(true);
+      expect(readExecPayload(result)).toEqual({
+        ok: false,
+        code: "not_found",
+        message: 'Action "does_not_exist" not found in registry.',
+      });
     });
 
-    it("denies an agent mutation without the admin role and never calls the handler", async () => {
+    it("flags a policy denial with code policy_denied, keeps its reason and never calls the handler", async () => {
       const handler = vi.fn(async () => ({ done: true }));
       registry.registerAction({ id: "delete_order", intent: "mutation" });
       registry.bindAction("delete_order", handler);
@@ -193,15 +196,16 @@ describe("attachSynqelRegistryToMcpServer", () => {
         arguments: { actionId: "delete_order" },
       });
 
-      const payload = readExecPayload(result);
-      expect(payload.ok).toBe(false);
-      expect(payload.message).toBe(
-        "Agents cannot execute mutation actions without the admin role.",
-      );
+      expect(result.isError).toBe(true);
+      expect(readExecPayload(result)).toEqual({
+        ok: false,
+        code: "policy_denied",
+        message: "Agents cannot execute mutation actions without the admin role.",
+      });
       expect(handler).not.toHaveBeenCalled();
     });
 
-    it("rejects input that fails the action's Zod schema and never calls the handler", async () => {
+    it("flags input that fails the Zod schema with code invalid_input and never calls the handler", async () => {
       const handler = vi.fn(async () => ({ done: true }));
       registry.registerAction({
         id: "lookup",
@@ -215,13 +219,15 @@ describe("attachSynqelRegistryToMcpServer", () => {
         arguments: { actionId: "lookup", input: { sku: 123 } },
       });
 
+      expect(result.isError).toBe(true);
       const payload = readExecPayload(result);
       expect(payload.ok).toBe(false);
+      expect(payload.code).toBe("invalid_input");
       expect(payload.message).toContain("sku");
       expect(handler).not.toHaveBeenCalled();
     });
 
-    it("returns ok:false when no handler is bound", async () => {
+    it("flags an unbound action with code unbound", async () => {
       registry.registerAction({ id: "unbound", intent: "query" });
 
       const result = await client.callTool({
@@ -229,16 +235,18 @@ describe("attachSynqelRegistryToMcpServer", () => {
         arguments: { actionId: "unbound" },
       });
 
+      expect(result.isError).toBe(true);
       expect(readExecPayload(result)).toEqual({
         ok: false,
+        code: "unbound",
         message: 'No handler bound for action "unbound".',
       });
     });
 
-    it("returns ok:false with the error message when the handler throws", async () => {
+    it("hides a throwing handler's message behind a generic one", async () => {
       registry.registerAction({ id: "explode", intent: "query" });
       registry.bindAction("explode", async () => {
-        throw new Error("payment gateway timeout");
+        throw new Error("connection refused to db-prod:5432");
       });
 
       const result = await client.callTool({
@@ -246,10 +254,27 @@ describe("attachSynqelRegistryToMcpServer", () => {
         arguments: { actionId: "explode" },
       });
 
+      expect(result.isError).toBe(true);
       expect(readExecPayload(result)).toEqual({
         ok: false,
-        message: "payment gateway timeout",
+        code: "handler_error",
+        message: "Action handler failed.",
       });
+    });
+
+    it("still emits the original handler message on the registry event bus", async () => {
+      const messages: Array<string | undefined> = [];
+      registry.bus.subscribe((event) => {
+        if (event.type === "action:result" && !event.ok) messages.push(event.message);
+      });
+      registry.registerAction({ id: "explode", intent: "query" });
+      registry.bindAction("explode", async () => {
+        throw new Error("connection refused to db-prod:5432");
+      });
+
+      await client.callTool({ name: "synqel_execute_action", arguments: { actionId: "explode" } });
+
+      expect(messages).toEqual(["connection refused to db-prod:5432"]);
     });
 
     it("returns an MCP tool error naming actionId when required arguments are missing", async () => {
@@ -288,6 +313,36 @@ describe("attachSynqelRegistryToMcpServer with defaultPolicyContext", () => {
       });
 
       expect(readExecPayload(result)).toEqual({ ok: true, data: { roles: ["admin"] } });
+    } finally {
+      await Promise.all([client.close(), server.close()]);
+    }
+  });
+});
+
+describe("attachSynqelRegistryToMcpServer with exposeHandlerErrors", () => {
+  it("returns the original handler message when exposeHandlerErrors is true", async () => {
+    const registry = new SemanticRegistry();
+    registry.registerAction({ id: "explode", intent: "query" });
+    registry.bindAction("explode", async () => {
+      throw new Error("payment gateway timeout");
+    });
+
+    const { client, server } = await setupClientAndServer(registry, {
+      exposeHandlerErrors: true,
+    });
+
+    try {
+      const result = await client.callTool({
+        name: "synqel_execute_action",
+        arguments: { actionId: "explode" },
+      });
+
+      expect(result.isError).toBe(true);
+      expect(readExecPayload(result)).toEqual({
+        ok: false,
+        code: "handler_error",
+        message: "payment gateway timeout",
+      });
     } finally {
       await Promise.all([client.close(), server.close()]);
     }

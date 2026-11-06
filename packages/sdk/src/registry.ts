@@ -162,7 +162,7 @@ export class SemanticRegistry {
         ok: false,
         message,
       });
-      return { ok: false, message };
+      return { ok: false, code: "not_found", message };
     }
 
     const sessionId = options?.sessionId;
@@ -188,7 +188,7 @@ export class SemanticRegistry {
         ok: false,
         message: decision.reason,
       });
-      return { ok: false, message: decision.reason };
+      return { ok: false, code: "policy_denied", message: decision.reason };
     }
 
     const zodSchema = this.actionInputZod.get(actionId);
@@ -203,7 +203,7 @@ export class SemanticRegistry {
           ok: false,
           message,
         });
-        return { ok: false, message };
+        return { ok: false, code: "invalid_input", message };
       }
       parsedInput = parsed.data;
     }
@@ -217,7 +217,7 @@ export class SemanticRegistry {
         ok: false,
         message,
       });
-      return { ok: false, message };
+      return { ok: false, code: "unbound", message };
     }
 
     const execCtx = { ...context, ...(sessionId !== undefined ? { sessionId } : {}) };
@@ -241,7 +241,7 @@ export class SemanticRegistry {
         ok: false,
         message,
       });
-      return { ok: false, message };
+      return { ok: false, code: "handler_error", message };
     }
   }
 

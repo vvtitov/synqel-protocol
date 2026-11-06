@@ -263,6 +263,16 @@ export default function SdkPage() {
         <div className="mt-4">
           <CodeBlock code={EXECUTE_ACTION_CODE} language="typescript" />
         </div>
+        <p className="mt-4 text-sm leading-relaxed" style={{ color: "var(--color-text-secondary)" }}>
+          Resolves with <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>{"{ ok, data?, message?, code? }"}</code>. On failure,{" "}
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>code</code> tells why:{" "}
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>not_found</code>,{" "}
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>policy_denied</code>,{" "}
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>invalid_input</code>,{" "}
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>unbound</code> (no handler bound) or{" "}
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>handler_error</code> (the handler threw). Successful results carry no{" "}
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>code</code>.
+        </p>
       </section>
 
       <section id="snapshot" className="mt-12">
@@ -364,7 +374,10 @@ export default function SdkPage() {
           Sibling package in this monorepo. Registers MCP tools{" "}
           <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>synqel_get_snapshot</code> and{" "}
           <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>synqel_execute_action</code> so hosts connect via stdio without a custom wire protocol.
-          Install with your package manager once published alongside the SDK; source:{" "}
+          Failed actions set MCP <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>isError</code> and include the Synqel{" "}
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>code</code>. When a handler throws, agents receive a generic message unless you pass{" "}
+          <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>exposeHandlerErrors: true</code>; the original message is still emitted on the event bus.
+          Install with <code style={{ fontFamily: "var(--font-mono)", fontSize: "0.875em" }}>bun add @synqel/mcp @synqel/sdk zod</code>; source:{" "}
           <a
             href="https://github.com/vvtitov/synqel-protocol/tree/main/packages/mcp"
             className="underline"

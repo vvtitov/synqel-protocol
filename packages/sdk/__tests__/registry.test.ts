@@ -391,3 +391,104 @@ describe("singleton", () => {
     expect(b.getSnapshot().entities).toHaveLength(0);
   });
 });
+
+describe("executeAction failure codes", () => {
+  let registry: SemanticRegistry;
+
+  beforeEach(() => {
+    registry = new SemanticRegistry();
+  });
+
+  it("returns code not_found for an unknown action", async () => {
+    const result = await registry.executeAction("missing", { actor: "human", roles: [] });
+
+    expect(result).toEqual({
+      ok: false,
+      code: "not_found",
+      message: 'Action "missing" not found in registry.',
+    });
+  });
+
+  it("returns code policy_denied when the policy rejects the actor", async () => {
+    registry.registerAction({ id: "delete_order", intent: "mutation" });
+    registry.bindAction("delete_order", async () => ({ done: true }));
+
+    const result = await registry.executeAction("delete_order", { actor: "agent", roles: [] });
+
+    expect(result).toEqual({
+      ok: false,
+      code: "policy_denied",
+      message: "Agents cannot execute mutation actions without the admin role.",
+    });
+  });
+
+  it("returns code invalid_input when input fails the Zod schema", async () => {
+    registry.registerAction({
+      id: "lookup",
+      intent: "query",
+      inputSchema: z.object({ sku: z.string() }),
+    });
+    registry.bindAction("lookup", async () => ({ found: true }));
+
+    const result = await registry.executeAction(
+      "lookup",
+      { actor: "human", roles: [] },
+      { sku: 1 },
+    );
+
+    expect(result.ok).toBe(false);
+    expect(result.code).toBe("invalid_input");
+    expect(result.message).toContain("sku");
+  });
+
+  it("returns code unbound when no handler is bound", async () => {
+    registry.registerAction({ id: "unbound", intent: "query" });
+
+    const result = await registry.executeAction("unbound", { actor: "human", roles: [] });
+
+    expect(result).toEqual({
+      ok: false,
+      code: "unbound",
+      message: 'No handler bound for action "unbound".',
+    });
+  });
+
+  it("returns code handler_error with the original message when the handler throws", async () => {
+    registry.registerAction({ id: "explode", intent: "query" });
+    registry.bindAction("explode", async () => {
+      throw new Error("connection refused to db-prod:5432");
+    });
+
+    const result = await registry.executeAction("explode", { actor: "human", roles: [] });
+
+    expect(result).toEqual({
+      ok: false,
+      code: "handler_error",
+      message: "connection refused to db-prod:5432",
+    });
+  });
+
+  it("returns code handler_error when the handler throws a non-Error value", async () => {
+    registry.registerAction({ id: "throw_string", intent: "query" });
+    registry.bindAction("throw_string", async () => {
+      throw "boom";
+    });
+
+    const result = await registry.executeAction("throw_string", { actor: "human", roles: [] });
+
+    expect(result).toEqual({
+      ok: false,
+      code: "handler_error",
+      message: "Action handler threw a non-Error value.",
+    });
+  });
+
+  it("does not set code on success", async () => {
+    registry.registerAction({ id: "ping", intent: "query" });
+    registry.bindAction("ping", async () => ({ pong: true }));
+
+    const result = await registry.executeAction("ping", { actor: "human", roles: [] });
+
+    expect(result).toEqual({ ok: true, data: { pong: true } });
+  });
+});

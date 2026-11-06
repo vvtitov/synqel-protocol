@@ -13,12 +13,21 @@ export const SYNQEL_MCP_VERSION: string = (
 export type SynqelMcpServerOptions = {
   /** Used when `synqel_execute_action` omits `policyContext`. Defaults to `{ actor: "agent", roles: [] }`. */
   defaultPolicyContext?: PolicyContext;
+  /**
+   * When `true`, a handler that throws returns its own error message to the agent.
+   * Defaults to `false`: agents receive a generic message, and the original one is
+   * still emitted on the registry event bus (`action:result`) for logging.
+   */
+  exposeHandlerErrors?: boolean;
 };
+
+const HANDLER_ERROR_MESSAGE = "Action handler failed.";
 
 /**
  * Registers MCP tools on an existing {@link McpServer}:
  * - `synqel_get_snapshot` — JSON envelope (`synqel.snapshot.v1`)
- * - `synqel_execute_action` — policy → validate optional Zod input → bound handler
+ * - `synqel_execute_action` — policy → validate optional Zod input → bound handler;
+ *   failures set MCP `isError` and carry a Synqel error `code`
  */
 export function attachSynqelRegistryToMcpServer(
   server: McpServer,
@@ -63,11 +72,16 @@ export function attachSynqelRegistryToMcpServer(
       const result = await registry.executeAction(args.actionId, ctx, args.input, {
         sessionId: args.sessionId,
       });
+      const payload =
+        result.code === "handler_error" && !options?.exposeHandlerErrors
+          ? { ...result, message: HANDLER_ERROR_MESSAGE }
+          : result;
       return {
+        ...(result.ok ? {} : { isError: true }),
         content: [
           {
             type: "text",
-            text: JSON.stringify(result, null, 2),
+            text: JSON.stringify(payload, null, 2),
           },
         ],
       };
