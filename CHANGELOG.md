@@ -6,6 +6,8 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/
 
 ## Unreleased
 
+## 0.2.0
+
 ### `@synqel/sdk`
 
 - `ExecuteActionResult` gains an optional `code` on failure: `not_found`, `policy_denied`, `invalid_input`, `unbound` or `handler_error`. The new `ExecuteActionErrorCode` type is exported. Additive; successful results are unchanged.
@@ -14,6 +16,11 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/
 
 - Failed actions now return an MCP tool error (`isError: true`) and include the Synqel `code` in the JSON payload. Previously they were reported as successful tool calls containing `ok: false`.
 - When a handler throws, agents receive `"Action handler failed."` instead of the thrown message. Pass `exposeHandlerErrors: true` to restore the previous behavior. The original message is still emitted on the registry event bus.
+- Depend on `@synqel/sdk` `^0.2.0`.
+
+### Repository
+
+- Remove the GitHub Packages publish workflow. The `@synqel` scope does not match the repository owner, so the workflow could never succeed, and it ran on every GitHub Release.
 
 ## 0.1.1
 

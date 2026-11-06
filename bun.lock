@@ -25,7 +25,7 @@
     },
     "packages/mcp": {
       "name": "@synqel/mcp",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "dependencies": {
         "@modelcontextprotocol/sdk": "^1.32.2",
         "@synqel/sdk": "workspace:^",
@@ -41,7 +41,7 @@
     },
     "packages/sdk": {
       "name": "@synqel/sdk",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "dependencies": {
         "zod-to-json-schema": "^3.25.2",
       },
