@@ -6,10 +6,20 @@ The format is loosely based on [Keep a Changelog](https://keepachangelog.com/en/
 
 ## Unreleased
 
+## 0.3.0
+
 ### `@synqel/sdk` (breaking, types only)
 
 - `ExecuteActionResult` is now a discriminated union of `ExecuteActionSuccess` (`{ ok: true; data? }`) and `ExecuteActionFailure` (`{ ok: false; code; message }`), both exported. Failures always carry `code` and `message`; successes never do. Runtime values are unchanged, but code that reads `message`, `code` or `data` without checking `ok` first no longer type-checks.
 - Type-level tests run in Vitest (`*.test-d.ts`), and every SDK test file is type-checked during `bun run test`.
+
+### `@synqel/mcp`
+
+- Depend on `@synqel/sdk` `^0.3.0`. No behavior change.
+
+### Repository
+
+- Pin Bun 1.3.14 in `packageManager`; CI installs that same version instead of `latest`.
 
 ## 0.2.0
 
