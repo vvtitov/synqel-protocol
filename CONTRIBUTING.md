@@ -92,7 +92,7 @@ Both packages are published to **npm** (public).
 ### Rules for SDK contributions
 
 - **Tests required**: every new export must have corresponding unit tests
-- **Keep runtime dependencies minimal**: `@synqel/sdk` ships **`zod`** (peer) plus **`zod-to-json-schema`** for JSON Schema export; do not add transitive-heavy stacks without discussion.
+- **Keep runtime dependencies minimal**: `@synqel/sdk` ships **`zod`** (peer, `^3.25.28`) plus **`zod-to-json-schema`** for JSON Schema export; do not add transitive-heavy stacks without discussion.
 - **`@synqel/mcp`** may depend on `@modelcontextprotocol/sdk` — keep that boundary (transport only).
 - **No `any` types**: every export must be fully typed
 - **Strict mode**: TypeScript strict mode is enforced

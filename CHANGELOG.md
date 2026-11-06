@@ -20,6 +20,7 @@ First release published to npm for both packages.
 
 ### Both packages
 
+- Require `zod` `^3.25.28` as a peer dependency (was `>=3` in `@synqel/sdk`). `zod-to-json-schema` 3.25.2, used for `inputJsonSchema`, requires that minimum.
 - Set `publishConfig.access` to `public` and ship the MIT `LICENSE` file in each tarball.
 
 ### Repository
