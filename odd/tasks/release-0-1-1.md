@@ -25,3 +25,5 @@ Branch: `chore/release-0.1.1` · Delivery: ask-on-risk · Test runner: Vitest vi
 - L1 (2026-11-06): "continuemos con los pendientes del artifact"
 - L2: Baseline on main@1a8a027: `bun run test` 76 passed (sdk 72, mcp 4); `bun run typecheck` clean. The artifact's "56 tests" figure was a manual undercount.
 - L3: Finding: `synqel_execute_action` returns failures (`ok:false`) without MCP `isError: true`. T1 pins current behavior; changing it is a user decision.
+- L4: Correction: before T2 the lockfile resolved `@modelcontextprotocol/sdk` 1.29.0 (manifest said ^1.12.1), so the real jump was 1.29.0 → 1.32.2.
+- L5: Native review of main..2ea3c7f (lineage review-fa4db42786a710b7, lenses risk+reliability): approved, acknowledged, authority burned. Advisories addressed in a follow-up commit: missing-args test made deterministic; `zod` declared as peer of `@synqel/mcp` (src imports it at runtime but it was devDependency-only). Left open: thrown handler `Error.message` is passed verbatim to agents (pre-existing, user decision); `bun.lock` `configVersion` written by local bun 1.3.14 vs `packageManager: bun@1.2.10` pin.

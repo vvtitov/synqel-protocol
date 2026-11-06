@@ -249,18 +249,12 @@ describe("attachSynqelRegistryToMcpServer", () => {
       });
     });
 
-    it("does not report success when required tool arguments are missing", async () => {
-      const outcome = await client
-        .callTool({ name: "synqel_execute_action", arguments: {} })
-        .then(
-          (result) => ({ rejected: false as const, result }),
-          () => ({ rejected: true as const }),
-        );
+    it("returns an MCP tool error naming actionId when required arguments are missing", async () => {
+      const result = await client.callTool({ name: "synqel_execute_action", arguments: {} });
 
-      // MCP SDK versions differ: older ones reject with InvalidParams, newer ones return isError.
-      if (!outcome.rejected) {
-        expect(outcome.result.isError).toBe(true);
-      }
+      expect(result.isError).toBe(true);
+      expect(readText(result)).toContain("Input validation error");
+      expect(readText(result)).toContain("actionId");
     });
   });
 });
