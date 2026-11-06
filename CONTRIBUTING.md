@@ -85,9 +85,9 @@ Both packages are published to **npm** (public).
 - **Dry run:** `bun publish --dry-run` from each package directory, and `bun pm pack` to inspect the tarball's `package.json`.
 - `prepublishOnly` runs tests and build in each package. `publishConfig.access` is `public`, so scoped packages publish publicly without extra flags.
 
-**GitHub Packages (optional mirror, not set up yet):** publishing is automated in [`.github/workflows/publish-sdk-github-packages.yml`](./.github/workflows/publish-sdk-github-packages.yml). Creating a **GitHub Release** runs the workflow, or you can start it manually under **Actions**.
-- **Scope vs repo owner:** GitHub’s npm registry expects the package scope to match a GitHub **user or organization** name. For `@synqel/sdk`, the account **`synqel`** on GitHub must own the package. If this repository is under another owner (for example a personal account), add a repository secret **`GH_PACKAGES_PUBLISH_TOKEN`**: a classic PAT or fine-grained token with `write:packages` for the **`synqel`** org (or whichever GitHub owner matches `@synqel`). If the secret is absent, the workflow uses `GITHUB_TOKEN`, which only works when the repository owner matches the npm scope.
-- After the first successful publish, link or confirm the package under the repository’s **Packages** tab and set visibility to **public** if you want unauthenticated installs from GitHub.
+- **After publishing:** tag the merge commit as `vX.Y.Z` and create a GitHub Release from that tag with the CHANGELOG notes.
+
+**No GitHub Packages mirror.** GitHub's npm registry requires the package scope to match the repository owner. This repository is owned by `vvtitov`, not by a `synqel` user or organization, so `@synqel/*` cannot be published there; the repository's **Packages** sidebar stays empty by design. npm is the only registry.
 
 ### Rules for SDK contributions
 
@@ -103,7 +103,7 @@ Both packages are published to **npm** (public).
 Tests use [Vitest](https://vitest.dev).
 
 - **`@synqel/sdk`**: place tests in `packages/sdk/__tests__/` as `<module>.test.ts`.
-- **`@synqel/mcp`**: place tests in `packages/mcp/__tests__/` as `<module>.test.ts` (MCP client/server smoke tests use the SDK’s in-memory transport pair). The MCP package declares **`pretest`** to compile `packages/sdk` first: `@synqel/sdk` is linked from the workspace, but its **`package.exports`** point at `dist/`, so **`dist`** must exist even before anything is published to npm or GitHub Packages.
+- **`@synqel/mcp`**: place tests in `packages/mcp/__tests__/` as `<module>.test.ts` (MCP client/server smoke tests use the SDK’s in-memory transport pair). The MCP package declares **`pretest`** to compile `packages/sdk` first: `@synqel/sdk` is linked from the workspace, but its **`package.exports`** point at `dist/`, so **`dist`** must exist before the tests run.
 
 ```bash
 # Run repository test suite (SDK, then MCP)
