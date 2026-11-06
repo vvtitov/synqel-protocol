@@ -79,7 +79,7 @@ It resolves with `{ ok, data?, message?, code? }`. On failure, `code` tells why:
 | `policy_denied` | A policy rule rejected the actor; `message` holds the reason |
 | `invalid_input` | Input failed the action's Zod schema |
 | `unbound` | The action has no bound handler |
-| `handler_error` | The handler threw; `message` holds the thrown error's message |
+| `handler_error` | The handler threw; `message` holds the thrown `Error`'s message, or "Action handler threw a non-Error value." for other thrown values |
 
 Successful results carry no `code`.
 
