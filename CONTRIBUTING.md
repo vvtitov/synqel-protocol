@@ -81,7 +81,7 @@ Both packages are published to **npm** (public).
 
 - **Use `bun publish`, never `npm publish`.** `@synqel/mcp` depends on `@synqel/sdk` through the `workspace:^` protocol. `bun publish` rewrites it to a real semver range (for example `^0.1.1`); `npm publish` ships `workspace:^` verbatim and the package becomes uninstallable.
 - **Order:** publish `@synqel/sdk` first, then `@synqel/mcp`, so the SDK version the MCP package depends on already exists.
-- **Before publishing:** bump `version` in both `package.json` files, the server version in `packages/mcp/src/index.ts`, and the workspace `version` entries in `bun.lock`; move the `Unreleased` notes in `CHANGELOG.md` under the new version.
+- **Before publishing:** bump `version` in both `package.json` files and the workspace `version` entries in `bun.lock` (the MCP server reads its reported version from its manifest); move the `Unreleased` notes in `CHANGELOG.md` under the new version.
 - **Dry run:** `bun publish --dry-run` from each package directory, and `bun pm pack` to inspect the tarball's `package.json`.
 - `prepublishOnly` runs tests and build in each package. `publishConfig.access` is `public`, so scoped packages publish publicly without extra flags.
 

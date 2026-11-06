@@ -15,7 +15,7 @@ First release published to npm for both packages.
 - Update `@modelcontextprotocol/sdk` to `^1.32.2`.
 - Declare `zod` (`^3.25`) as a peer dependency. The adapter imports it at runtime but previously listed it only as a dev dependency.
 - Depend on `@synqel/sdk` with a caret range (`^0.1.1`) instead of an exact workspace pin.
-- MCP server reports version `0.1.1`.
+- Export `SYNQEL_MCP_VERSION`, read from the package manifest; the MCP server reports it as its version instead of a hard-coded string.
 - Add a Vitest suite with in-memory MCP client/server transport: tool listing, snapshot envelope, `inputJsonSchema`, `sessionId` passthrough, `defaultPolicyContext`, and error paths (unknown action, policy denial, invalid input, unbound handler, throwing handler, missing tool arguments).
 
 ### Both packages

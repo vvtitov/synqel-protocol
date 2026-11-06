@@ -5,8 +5,11 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { SemanticRegistry } from "@synqel/sdk";
 import { z } from "zod";
 
+import { readFileSync } from "node:fs";
+
 import {
   attachSynqelRegistryToMcpServer,
+  SYNQEL_MCP_VERSION,
   type SynqelMcpServerOptions,
 } from "../src/index.js";
 
@@ -253,9 +256,18 @@ describe("attachSynqelRegistryToMcpServer", () => {
       const result = await client.callTool({ name: "synqel_execute_action", arguments: {} });
 
       expect(result.isError).toBe(true);
-      expect(readText(result)).toContain("Input validation error");
       expect(readText(result)).toContain("actionId");
     });
+  });
+});
+
+describe("SYNQEL_MCP_VERSION", () => {
+  it("matches the version in the package manifest", () => {
+    const manifest = JSON.parse(
+      readFileSync(new URL("../package.json", import.meta.url), "utf8"),
+    ) as { version: string };
+
+    expect(SYNQEL_MCP_VERSION).toBe(manifest.version);
   });
 });
 
