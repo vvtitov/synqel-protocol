@@ -36,6 +36,25 @@ await connectSynqelMcpStdio(getSemanticRegistry(), {
 });
 ```
 
+### Options
+
+| Option | Default | Effect |
+|--------|---------|--------|
+| `defaultPolicyContext` | `{ actor: "agent", roles: [] }` | Policy context used when `synqel_execute_action` omits `policyContext` |
+| `exposeHandlerErrors` | `false` | Return a throwing handler's own message to the agent instead of a generic one |
+
+### Errors
+
+When an action fails, `synqel_execute_action` returns an MCP tool error (`isError: true`) whose text is the Synqel result as JSON, including a `code`:
+
+```json
+{ "ok": false, "code": "policy_denied", "message": "Agents cannot execute mutation actions without the admin role." }
+```
+
+Codes: `not_found`, `policy_denied`, `invalid_input`, `unbound`, `handler_error`. For `handler_error` the agent sees `"Action handler failed."` unless `exposeHandlerErrors` is `true`, so internal details (hosts, queries, stack messages) stay out of the agent's context. The original message is still emitted on the registry event bus (`action:result`) for your logs.
+
+Missing or malformed tool arguments (for example no `actionId`) are rejected by the MCP SDK's own input validation, also as `isError: true`.
+
 For a ready-made stdio process against the **global** registry singleton:
 
 ```bash

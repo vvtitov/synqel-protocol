@@ -65,10 +65,19 @@ export type ExecuteActionOptions = {
   sessionId?: string;
 };
 
+/** Why {@link ExecuteActionResult} failed. Present only when `ok` is `false`. */
+export type ExecuteActionErrorCode =
+  | "not_found"
+  | "policy_denied"
+  | "invalid_input"
+  | "unbound"
+  | "handler_error";
+
 export type ExecuteActionResult = {
   ok: boolean;
   message?: string;
   data?: unknown;
+  code?: ExecuteActionErrorCode;
 };
 
 export type RuntimeEvent =

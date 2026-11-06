@@ -54,7 +54,7 @@ bindAction("submit_order", async (_ctx, input) => {
 });
 ```
 
-Without a bound handler, `executeAction` resolves with `{ ok: false, message: "No handler bound …" }`.
+Without a bound handler, `executeAction` resolves with `{ ok: false, code: "unbound", message: "No handler bound …" }`.
 
 ### executeAction
 
@@ -70,6 +70,18 @@ await executeAction(
   { sessionId: optionalCorrelationId },
 );
 ```
+
+It resolves with `{ ok, data?, message?, code? }`. On failure, `code` tells why:
+
+| `code` | When |
+|--------|------|
+| `not_found` | No action is registered with that id |
+| `policy_denied` | A policy rule rejected the actor; `message` holds the reason |
+| `invalid_input` | Input failed the action's Zod schema |
+| `unbound` | The action has no bound handler |
+| `handler_error` | The handler threw; `message` holds the thrown error's message |
+
+Successful results carry no `code`.
 
 ### registerCapability / registerWorkflow
 
