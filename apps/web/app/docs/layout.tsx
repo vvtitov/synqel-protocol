@@ -14,12 +14,8 @@ export default function DocsLayout({
       <main
         id="main-content"
         tabIndex={-1}
-        className="min-w-0 flex-1 pt-7 outline-none sm:pt-9 lg:border-l lg:pl-10"
-        style={{
-          borderColor: "var(--color-border)",
-          paddingBottom:
-            "max(14rem, calc(100svh - var(--doc-scroll-margin, 4.5rem)))",
-        }}
+        className="docs-main min-w-0 flex-1 pt-7 outline-none sm:pt-9 lg:border-l lg:pl-10"
+        style={{ borderColor: "var(--color-border)" }}
       >
         <DocsMobileNav />
         {children}

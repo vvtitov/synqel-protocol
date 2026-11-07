@@ -320,6 +320,18 @@ main :where(a, button):focus-visible {
   scroll-margin-top: var(--doc-scroll-margin, 4.5rem);
 }
 
+/* Docs bottom space. On desktop it is tall enough for the last heading to
+   scroll under the nav (sidebar scrollspy and hash links). On phones that
+   reads as a blank screen after the content, so keep it modest there. */
+.docs-main {
+  padding-bottom: 5rem;
+}
+@media (min-width: 64rem) {
+  .docs-main {
+    padding-bottom: max(14rem, calc(100svh - var(--doc-scroll-margin, 4.5rem)));
+  }
+}
+
 /* ── reduced-motion guards ── */
 @media (prefers-reduced-motion: reduce) {
   .hero-float           { animation: none; }
