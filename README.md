@@ -182,14 +182,10 @@ No DOM nodes. No CSS selectors. No visual noise. Just meaning.
 
 ## Documentation
 
-Two surfaces share responsibility for the same story; keep them consistent when you edit behavior or spec text:
+The markdown in **`docs/`** is the single source: the site at **[synqel-protocol.vercel.app/docs](https://synqel-protocol.vercel.app/docs)** renders the same files.
 
-- **`docs/`** — Markdown for GitHub and repo readers (`docs/README.md` explains the split).
-- **`apps/web`** — Public site at `/docs/*`, implemented as Next.js pages (`apps/web/app/docs/`, nav in `apps/web/lib/docs-nav.ts`).
-
-Read the docs online at **[synqel-protocol.vercel.app/docs](https://synqel-protocol.vercel.app/docs)**. The markdown in this repo overlaps with that site:
-
-- [Getting Started](./docs/sdk.md)
+- [Getting Started](./docs/getting-started.md)
+- [SDK Reference](./docs/sdk.md)
 - [Protocol Specification](./docs/protocol.md)
 - [Event Taxonomy](./docs/events.md)
 - [Policy System](./docs/policy.md)

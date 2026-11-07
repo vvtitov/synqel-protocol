@@ -4,12 +4,11 @@ Thank you for your interest in contributing to Synqel Protocol! This document co
 
 ## Documentation maintenance
 
-The repository has **two** documentation surfaces:
+**`docs/*.md` is the single source of documentation.** The public site renders those files at build time (`apps/web/app/docs/*` pages call `DocPage`; mapping in `apps/web/lib/docs-content.ts`), so GitHub readers and site visitors see the same text.
 
-- **`docs/*.md`** — Versioned markdown for readers browsing the repo or GitHub.
-- **`apps/web/app/docs/*`** — The public documentation site (Next.js routes; navigation in `apps/web/lib/docs-nav.ts`).
-
-They are **not** auto-synced. Any change that affects how the protocol or SDK is described for end users should usually update **both**, or at least cross-link and note the intentional difference. See **`docs/README.md`**.
+- Edit the markdown, never the site pages. Link other docs with relative `./<name>.md` links (the site rewrites them to `/docs/<name>`); link repository files outside `docs/` with full GitHub URLs.
+- Give a code block a title with the fence meta, for example ```` ```ts title="semantic.ts" ````.
+- Sidebar entries live in `apps/web/lib/docs-nav.ts` and point to GitHub-style heading slugs (`## registerEntity` → `#registerentity`). `bun run test` fails if a sidebar link points to a heading that does not exist, so rename headings and nav entries together.
 
 ## Protocol Evolution Process
 
@@ -167,7 +166,7 @@ Before submitting a PR, confirm that:
 - [ ] All existing tests pass (`bun run test`)
 - [ ] New code has corresponding tests
 - [ ] Type checking passes (`bun run typecheck`)
-- [ ] Documentation is updated if the public API changed (**`docs/`** and overlapping **`apps/web/app/docs/`** pages where applicable)
+- [ ] Documentation in **`docs/`** is updated if the public API changed (the site renders it)
 - [ ] Commit messages follow the conventional commits format
 - [ ] New `@synqel/sdk` runtime dependencies are justified (prefer staying lean: `zod` + `zod-to-json-schema`)
 - [ ] No `any` types were introduced

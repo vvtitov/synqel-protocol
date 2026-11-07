@@ -1,0 +1,29 @@
+# Docs single source (docs/*.md rendered by the site)
+
+Objective: make `docs/*.md` the only documentation source and have `apps/web` render it at build time, replacing the hand-written TSX doc pages.
+Branch: `docs/single-source` (stacked on `feat/execute-result-union`, PR #4) · Delivery: two PR slices (content, then renderer + pages) · Test runner: Vitest (`bun run test`); web has `typecheck` and `build` only.
+
+## Specs
+
+- S1: User decision (2026-11-06), option chosen verbatim: "docs/*.md → sitio (Recomendado)" — "Los .md del repo pasan a ser la fuente: el sitio los lee al compilar y los renderiza con MDX. GitHub y el sitio muestran lo mismo. Se pierde el JSX hecho a mano de cada página, que pasa a estilos comunes de Markdown."
+- S2: Content reconciliation: each `docs/*.md` becomes the superset of its TSX page and current markdown, keeping the most accurate version of every section (e.g. the `synqel.snapshot.v1` envelope, `isError`/`exposeHandlerErrors`, the discriminated `ExecuteActionResult`). `/docs` (Getting Started) gets a new `docs/getting-started.md`. No content the site shows today is lost unless it is wrong.
+- S3: Rendering: the site reads `docs/*.md` at build time and renders GFM (tables, blockquotes, fenced code) with the existing `CodeBlock` (copy button, language badge, optional title from the fence meta). Relative `.md` links become `/docs/<name>` routes; links outside `docs/` become GitHub URLs.
+- S4: Anchors: heading ids use GitHub-compatible slugs so the same `#anchor` works on GitHub and on the site; `apps/web/lib/docs-nav.ts` hashes are updated to those slugs and a test fails if any nav hash has no matching heading. (Assumption: old camelCase hashes such as `#registerEntity` stop scrolling; pages still load.)
+- S5: Docs that describe the dual-surface setup (`README.md`, `CONTRIBUTING.md`, `docs/README.md`) describe the single source instead.
+
+## Tasks
+
+- T1 [S2] delegated (writer, parallel with T2; disjoint surface `docs/`) — reconcile content into docs/*.md — done (structural check OK; samples verified against packages/sdk/dist)
+- T2 [S3] delegated (writer, parallel with T1; disjoint surface `apps/web/components`, `apps/web/lib`, deps) — markdown renderer + prose styles — done (24 web tests, RED→GREEN; typecheck and build pass)
+- T3 [S3, S4] inline — replace TSX pages with md-backed pages, update nav hashes, anchor test — done (anchor test RED 17 → GREEN; build renders 6 static routes)
+- T4 [S5] inline — update README/CONTRIBUTING/docs/README/ROADMAP — done (CHANGELOG untouched: package-only and PR #5 edits the same section)
+
+## Log
+
+- L1 (2026-11-06): "continuemos con los pendientes" + chosen option "docs/*.md → sitio (Recomendado)".
+- L2: Explorer map: 6 TSX pages (protocol, sdk, events, policy, examples, getting started) vs 5 md files + docs/README.md; every pair has drifted; no markdown deps; nav scroll-spy needs DOM ids equal to nav hashes; CodeBlock has no syntax highlighting; no web tests.
+- L3: Route declaration: T1 and T2 delegated under the Writer trigger (parallel units, disjoint edit surfaces, each several minutes of work) and the long-session context backstop; T3/T4 inline.
+- L4: T2 writer: react-markdown 10 + remark-gfm + github-slugger; headingIds and the renderer share one remark plugin (ids match by construction, H1 counted like GitHub); fence meta `title="..."` read from hast `data.meta`; `.doc-prose` styles in globals.css; apps/web gets Vitest (24 tests). Parent spot check: `bun run --cwd apps/web test` 24 passed; diff stayed inside the declared surface.
+- L5: T1 writer reconciled all pairs and added docs/getting-started.md. Corrections backed by code: custom policy rules are NOT applied by executeAction (registry.ts calls evaluatePolicy without rules), docs now show a wrapper pattern; examples' registryVersion values recomputed; inputJsonSchema shown as real draft-07 output; dashboard example given a handler; events docs say workflow:* run and intent:* events are host-emitted only. Out-of-scope finding: react.ts useSemanticRuntime passes a non-cached getSnapshot() to useSyncExternalStore.
+- L6: Slugs for nav (T3): protocol entities, actions, capabilities, workflows, registry-snapshot; sdk registerentity, registeraction, bindaction, executeaction, snapshot-serialization, registercapability, registerworkflow, semanticregistry, semanticeventbus, evaluatepolicy, usesemanticruntime, usesemanticevents, mcp-adapter-synqelmcp; examples e-commerce-product-page, multi-step-form, dashboard-navigation, agents-http-and-mcp; getting-started installation, quick-start.
+- L7: T3/T4 inline. Rebased on origin/main after PR #4 merged. Root `bun run test` now includes apps/web (sdk 82, mcp 16, web 49). Generated HTML checked: nav ids present, 17 code blocks with Copy on /docs/sdk, fence titles shown, no local .md hrefs, per-page <title>.
