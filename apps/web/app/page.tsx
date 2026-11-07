@@ -87,7 +87,7 @@ const PRINCIPLES = [
   {
     title: "MCP-ready, not MCP-competitive",
     description:
-      "Synqel defines meaning and governance; MCP is optional transport. Ship the same registry via React hooks, HTTP snapshot routes, or `@synqel/mcp` tools (`synqel_get_snapshot`, `synqel_execute_action`).",
+      "Synqel defines meaning and governance; MCP is optional transport. Ship the same registry via React hooks, HTTP snapshot routes, or @synqel/mcp tools (synqel_get_snapshot, synqel_execute_action).",
   },
 ];
 
@@ -196,7 +196,7 @@ const BUILDABLE_PRODUCTS = [
       "A chat or command palette that reads the same registry snapshot your external agents use — one contract, two audiences.",
   },
   {
-    title: "Agent bridge (`@synqel/mcp`)",
+    title: "Agent bridge (@synqel/mcp)",
     description:
       "Stdio MCP tools expose snapshot + execution to Claude Desktop, Cursor, and other MCP hosts — without inventing a parallel agent protocol.",
   },
@@ -420,7 +420,7 @@ export default function HomePage() {
                     className="live-dot size-1.5 rounded-full"
                     style={{ backgroundColor: "var(--color-success)" }}
                   />
-                  ARIA for AI agents · Semantic layer · MCP-ready
+                  ARIA for AI agents<span className="hidden sm:inline"> · Semantic layer</span> · MCP-ready
                 </span>
               </div>
 
@@ -515,17 +515,17 @@ export default function HomePage() {
                 {STATS.map((item, i) => (
                   <li
                     key={item.label}
-                    className={`flex flex-1 flex-col items-center justify-center px-6 py-5 text-center ${i > 0 ? "border-t sm:border-t-0 sm:border-l" : ""}`}
+                    className={`flex flex-1 items-baseline justify-between gap-4 px-5 py-3.5 sm:flex-col sm:items-center sm:justify-center sm:gap-0 sm:px-6 sm:py-5 sm:text-center ${i > 0 ? "border-t sm:border-t-0 sm:border-l" : ""}`}
                     style={{ borderColor: "var(--color-border)" }}
                   >
                     <span
-                      className="text-lg font-bold tracking-tight sm:text-xl"
+                      className="text-base font-bold tracking-tight sm:text-xl"
                       style={{ color: "var(--color-text-primary)" }}
                     >
                       {item.value}
                     </span>
                     <span
-                      className="mt-1 text-xs sm:text-sm"
+                      className="order-first text-xs sm:order-none sm:mt-1 sm:text-sm"
                       style={{ color: "var(--color-text-muted)" }}
                     >
                       {item.label}
@@ -650,7 +650,7 @@ export default function HomePage() {
           </div>
           <div className="mt-10 grid gap-6 sm:mt-14 lg:grid-cols-2 lg:gap-8">
             <div
-              className="rounded-2xl border p-1 lg:p-1.5"
+              className="min-w-0 rounded-2xl border p-1 lg:p-1.5"
               style={{
                 borderColor: "var(--color-border)",
                 background: `linear-gradient(145deg, color-mix(in srgb, var(--color-danger) 12%, var(--color-bg-secondary)), var(--color-bg-secondary))`,
@@ -674,7 +674,7 @@ export default function HomePage() {
               />
             </div>
             <div
-              className="rounded-2xl border p-1 ring-1 lg:p-1.5"
+              className="min-w-0 rounded-2xl border p-1 ring-1 lg:p-1.5"
               style={{
                 borderColor: "var(--color-accent)",
                 background: `linear-gradient(145deg, color-mix(in srgb, var(--color-accent) 14%, var(--color-bg-secondary)), var(--color-bg-secondary))`,
@@ -1098,7 +1098,7 @@ export default function HomePage() {
             style={{ color: "var(--color-text-muted)" }}
           >
             <span style={{ color: "var(--color-text-secondary)", fontWeight: 600 }}>
-              SynqelProtocol
+              Synqel Protocol
             </span>{" "}
             is open source under the MIT license.
           </p>
