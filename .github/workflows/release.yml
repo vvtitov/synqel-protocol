@@ -1,0 +1,67 @@
+# Publishes @synqel/sdk and @synqel/mcp to npm when a GitHub Release is published.
+# Uses npm trusted publishing (OIDC): no npm token is stored in the repository, and
+# npm attaches a provenance attestation to each package. Each package must list this
+# repository and workflow file (release.yml) as a trusted publisher on npmjs.com.
+
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      # Trusted publishing needs npm >= 11.5.1 and Node >= 22.14.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+
+      - name: Install
+        run: bun install --frozen-lockfile
+
+      - name: Check the release tag matches both package versions
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          for pkg in sdk mcp; do
+            version=$(node -p "require('./packages/$pkg/package.json').version")
+            if [ "$version" != "$tag" ]; then
+              echo "packages/$pkg is $version but the release tag is $GITHUB_REF_NAME"
+              exit 1
+            fi
+          done
+
+      - name: Test and build
+        run: |
+          bun run test
+          bun run build
+
+      # bun pm pack rewrites workspace:^ to a real semver range; npm publish would not.
+      - name: Pack
+        run: |
+          mkdir -p "$RUNNER_TEMP/packs"
+          (cd packages/sdk && bun pm pack --destination "$RUNNER_TEMP/packs")
+          (cd packages/mcp && bun pm pack --destination "$RUNNER_TEMP/packs")
+          ls -l "$RUNNER_TEMP/packs"
+
+      - name: Publish @synqel/sdk
+        run: npm publish "$RUNNER_TEMP"/packs/synqel-sdk-*.tgz --access public
+
+      - name: Publish @synqel/mcp
+        run: npm publish "$RUNNER_TEMP"/packs/synqel-mcp-*.tgz --access public

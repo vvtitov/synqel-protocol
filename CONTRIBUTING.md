@@ -78,13 +78,17 @@ bun run dev
 
 Both packages are published to **npm** (public).
 
-- **Use `bun publish`, never `npm publish`.** `@synqel/mcp` depends on `@synqel/sdk` through the `workspace:^` protocol. `bun publish` rewrites it to a real semver range (for example `^0.1.1`); `npm publish` ships `workspace:^` verbatim and the package becomes uninstallable.
+**Normal path: publish a GitHub Release.** [`.github/workflows/release.yml`](./.github/workflows/release.yml) runs on every published Release: it checks that the tag (`vX.Y.Z`) matches both package versions, runs tests and build, packs both packages with `bun pm pack` and publishes them with npm trusted publishing (OIDC, with provenance). No npm token is stored in the repository. One-time setup: on npmjs.com, add this repository and the `release.yml` workflow as a trusted publisher for `@synqel/sdk` and for `@synqel/mcp`.
+
+To cut a release: bump the versions (see "Before publishing" below), merge the release PR, then create the GitHub Release `vX.Y.Z` on the merge commit with the CHANGELOG notes.
+
+**Manual fallback** (only if the workflow cannot run):
+
+- **Use `bun publish`, never `npm publish` on a package directory.** `@synqel/mcp` depends on `@synqel/sdk` through the `workspace:^` protocol. `bun publish` rewrites it to a real semver range (for example `^0.1.1`); `npm publish` ships `workspace:^` verbatim and the package becomes uninstallable.
 - **Order:** publish `@synqel/sdk` first, then `@synqel/mcp`, so the SDK version the MCP package depends on already exists.
 - **Before publishing:** bump `version` in both `package.json` files and the workspace `version` entries in `bun.lock` (the MCP server reads its reported version from its manifest); move the `Unreleased` notes in `CHANGELOG.md` under the new version.
 - **Dry run:** `bun publish --dry-run` from each package directory, and `bun pm pack` to inspect the tarball's `package.json`.
 - `prepublishOnly` runs tests and build in each package. `publishConfig.access` is `public`, so scoped packages publish publicly without extra flags.
-
-- **After publishing:** tag the merge commit as `vX.Y.Z` and create a GitHub Release from that tag with the CHANGELOG notes.
 
 **No GitHub Packages mirror.** GitHub's npm registry requires the package scope to match the repository owner. This repository is owned by `vvtitov`, not by a `synqel` user or organization, so `@synqel/*` cannot be published there; the repository's **Packages** sidebar stays empty by design. npm is the only registry.
 
