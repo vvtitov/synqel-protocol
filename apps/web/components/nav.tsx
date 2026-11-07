@@ -106,7 +106,7 @@ export function Nav() {
             onClick={close}
           >
             <span className="truncate text-base font-extrabold tracking-tight sm:text-lg">
-              Synqel
+              Synqel{" "}
               <span style={{ color: "var(--color-accent)" }}>Protocol</span>
             </span>
           </Link>
